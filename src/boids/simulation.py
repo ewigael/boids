@@ -4,7 +4,8 @@ from random import randint
 
 from .boid import Boid
 
-class Simulation():
+
+class Simulation:
 
     def __init__(self, width, height, boids_count):
         self.width = width
@@ -26,4 +27,3 @@ class Simulation():
         for boid in self.boids:
             boid.position.x %= self.width
             boid.position.y %= self.height
-
