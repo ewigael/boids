@@ -1,0 +1,14 @@
+[project]
+name = "boids"
+version = "0.1.0"
+requires-python = ">=3.14"
+
+[project.scripts]
+boids = "boids.main:main"
+
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
