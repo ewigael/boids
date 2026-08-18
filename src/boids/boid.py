@@ -3,6 +3,7 @@ import random
 
 from .vector2 import Vector2
 
+
 class Boid:
 
     canvas = None
@@ -23,10 +24,7 @@ class Boid:
 
         if direction is None:
             angle = random.uniform(0, 2 * math.pi)
-            direction = Vector2(
-                math.cos(angle),
-                math.sin(angle)
-            )
+            direction = Vector2(math.cos(angle), math.sin(angle))
         if acceleration is None:
             acceleration = Vector2(0, 0)
 
@@ -46,21 +44,23 @@ class Boid:
         right = back - perpendicular * 6
 
         self.canvas.create_polygon(
-            tip.x, tip.y,
-            left.x, left.y,
-            right.x, right.y,
+            tip.x,
+            tip.y,
+            left.x,
+            left.y,
+            right.x,
+            right.y,
             fill=self.color,
-            outline=self.outline
+            outline=self.outline,
         )
-    
+
     def wrap(self):
         width = self.canvas_width
         height = self.canvas_height
 
-
         self.position.x %= width
         self.position.y %= height
-    
+
     def update(self):
         self.velocity += self.acceleration
         self.position += self.velocity

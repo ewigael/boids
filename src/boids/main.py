@@ -39,7 +39,7 @@ def main():
             b.update()
             b.draw()
         root.after(16, update)
-    
+
     print("Starting update loop")
     update()
 
