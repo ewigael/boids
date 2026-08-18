@@ -6,6 +6,8 @@ from .vector2 import Vector2
 class Boid:
 
     canvas = None
+    canvas_width = 0
+    canvas_height = 0
 
     def __init__(
         self,
@@ -13,9 +15,9 @@ class Boid:
         y=0,
         color="#AA2FA4",
         outline="#19033D",
-        speed=10,
+        speed=7,
         direction=None,
-        acceleration=Vector2(0, 0),
+        acceleration=None,
     ):
         self.position = Vector2(x, y)
 
@@ -25,6 +27,8 @@ class Boid:
                 math.cos(angle),
                 math.sin(angle)
             )
+        if acceleration is None:
+            acceleration = Vector2(0, 0)
 
         self.velocity = direction * speed
         self.acceleration = acceleration
@@ -50,8 +54,10 @@ class Boid:
         )
     
     def wrap(self):
-        width = self.canvas.winfo_width()
-        height = self.canvas.winfo_height()
+        width = self.canvas_width
+        height = self.canvas_height
+
+
         self.position.x %= width
         self.position.y %= height
     
