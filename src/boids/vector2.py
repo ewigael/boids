@@ -29,4 +29,6 @@ class Vector2:
 
     def normalize(self):
         length = self.length()
+        if length == 0:
+            return Vector2(0, 0)
         return Vector2(self.x / length, self.y / length)
