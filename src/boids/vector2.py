@@ -8,12 +8,25 @@ class Vector2:
 
     def __add__(self, other):
         return Vector2(self.x + other.x, self.y + other.y)
+    
+    def __iadd__(self, other):
+        self.x += other.x
+        self.y += other.y
+        return self
 
     def __sub__(self, other):
         return Vector2(self.x - other.x, self.y - other.y)
 
     def __mul__(self, scalar):
         return Vector2(self.x * scalar, self.y * scalar)
+
+    def __rmul__(self, scalar):
+        return Vector2(self.x * scalar, self.y * scalar)
+
+    def __imul__(self, scalar):
+        self.x *= scalar
+        self.y *= scalar
+        return self
 
     def __neg__(self):
         return Vector2(-self.x, -self.y)

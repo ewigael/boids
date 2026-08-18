@@ -6,9 +6,7 @@ from .vector2 import Vector2
 
 class Boid:
 
-    canvas = None
-    canvas_width = 0
-    canvas_height = 0
+    sensor_range = 60
 
     def __init__(
         self,
@@ -16,7 +14,7 @@ class Boid:
         y=0,
         color="#AA2FA4",
         outline="#19033D",
-        speed=7,
+        speed=30,
         direction=None,
         acceleration=None,
     ):
@@ -34,36 +32,8 @@ class Boid:
         self.color = color
         self.outline = outline
 
-    def draw(self):
-        direction = self.velocity.normalize()
-        perpendicular = Vector2(-direction.y, direction.x)
-
-        tip = self.position + direction * 12
-        back = self.position - direction * 8
-        left = back + perpendicular * 6
-        right = back - perpendicular * 6
-
-        self.canvas.create_polygon(
-            tip.x,
-            tip.y,
-            left.x,
-            left.y,
-            right.x,
-            right.y,
-            fill=self.color,
-            outline=self.outline,
-        )
-
-    def wrap(self):
-        width = self.canvas_width
-        height = self.canvas_height
-
-        self.position.x %= width
-        self.position.y %= height
-
-    def update(self):
-        self.velocity += self.acceleration
-        self.position += self.velocity
-        self.wrap()
+    def update(self, dt):
+        self.velocity += self.acceleration * dt
+        self.position += self.velocity * dt
 
         self.acceleration *= 0
