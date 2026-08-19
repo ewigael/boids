@@ -14,7 +14,7 @@ def separation(boid, neighbors):
         if distance == 0:
             continue
 
-        strength = (max(0, boid.sensor_range - distance) / boid.sensor_range) ** 2
+        strength = (max(0, boid.sensor_range - distance) / boid.sensor_range) ** 3
         steering += offset.normalize() * strength
 
     return steering
@@ -35,13 +35,28 @@ def alignment(boid, neighbors):
         return steering
 
 
+def cohesion(boid, neighbors):
+
+    average_position = Vector2(0, 0)
+
+    for other in neighbors:
+        average_position += other.position
+
+    average_position /= len(neighbors)
+
+    steering = average_position - boid.position
+
+    return steering
+
+
 def flock(boid, neighbors):
     force = Vector2(0, 0)
 
     if not len(neighbors):
         return force
 
-    force += separation(boid, neighbors) * 50
-    force += alignment(boid, neighbors) * 2
+    force += separation(boid, neighbors) * 100
+    force += alignment(boid, neighbors) * 1
+    force += cohesion(boid, neighbors) * 1
 
     return force
