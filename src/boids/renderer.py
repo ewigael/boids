@@ -123,11 +123,11 @@ class Renderer:
     def draw_boid(self, boid):
 
         direction = boid.velocity.normalize()
-        perpendicular = Vector2(-direction.y, direction.x)
 
+        # Boid body
         tip = boid.position + direction * 12
         back = boid.position - direction * 8
-
+        perpendicular = Vector2(-direction.y, direction.x)
         left = back + perpendicular * 6
         right = back - perpendicular * 6
 
@@ -135,13 +135,24 @@ class Renderer:
         left = self.camera.world_to_screen(left)
         right = self.camera.world_to_screen(right)
 
-        points = [
+        body_points = [
             (int(tip.x), int(tip.y)),
             (int(left.x), int(left.y)),
             (int(right.x), int(right.y)),
         ]
 
-        pygame.draw.polygon(self.screen, boid.color, points)
+        # Boid sensor
+        if self.game_state.boids_show_sensor:
+
+            center = self.camera.world_to_screen(boid.position)
+            radius = boid.sensor_range * self.camera.zoom
+
+            pygame.draw.circle(
+                self.screen, "#444444", (int(center.x), int(center.y)), radius, 1
+            )
+
+        # Draw boid body last
+        pygame.draw.polygon(self.screen, boid.color, body_points)
 
     def draw_debug(self, camera, fps):
         lines = [
