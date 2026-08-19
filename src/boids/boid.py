@@ -7,14 +7,14 @@ from .colors import small_change_hex
 
 class Boid:
 
-    sensor_range = 600
+    sensor_range = 60
 
     def __init__(
         self,
         x=0,
         y=0,
         color="#AA2FA4",
-        speed=30,
+        speed=40,
         direction=None,
         acceleration=None,
     ):
