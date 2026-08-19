@@ -8,13 +8,15 @@ from .colors import small_change_hex
 class Boid:
 
     sensor_range = 60
+    min_speed = 60
+    max_speed = 200
 
     def __init__(
         self,
         x=0,
         y=0,
         color="#AA2FA4",
-        speed=30,
+        speed=100,
         direction=None,
         acceleration=None,
     ):
@@ -35,6 +37,15 @@ class Boid:
         self.acceleration += force
 
     def update(self, dt):
+
+        speed = self.velocity.length()
+
+        if speed < self.min_speed:
+            self.velocity = self.velocity.normalize() * self.min_speed
+
+        if speed > self.max_speed:
+            self.velocity = self.velocity.normalize() * self.max_speed
+
         self.velocity += self.acceleration * dt
         self.position += self.velocity * dt
 
