@@ -77,32 +77,6 @@ class Camera:
             relative.y * self.zoom + self.screen_height / 2,
         )
 
-    def handle_inputs(self, dt):
-
-        # Handle camera repositionning
-        movement = Vector2(0, 0)
-        if self.game_state.state["camera_move_left"]:
-            movement.x -= 1
-        if self.game_state.state["camera_move_right"]:
-            movement.x += 1
-        if self.game_state.state["camera_move_up"]:
-            movement.y -= 1
-        if self.game_state.state["camera_move_down"]:
-            movement.y += 1
-
-        camera_movement = movement.length()
-        if camera_movement > 0:
-            if camera_movement > 1:
-                self.move(movement.normalize() * self.speed * dt)
-            else:
-                self.move(movement * self.speed * dt)
-
-        # Handle camera zooming
-        if self.game_state.state["camera_zoom_up"]:
-            self.zoom_by(1 + 2 * dt)
-        if self.game_state.state["camera_zoom_down"]:
-            self.zoom_by(1 - 2 * dt)
-
 
 class Renderer:
     def __init__(self, game_state, width, height, simulation, background="#0C0C0E"):
@@ -113,7 +87,11 @@ class Renderer:
         self.background = background
 
         self.screen = pygame.display.set_mode((width, height))
-        self.font = pygame.font.Font(None, 24)
+        # self.font = pygame.font.Font(None, 24)
+        self.font = pygame.font.SysFont(
+            ["JetBrains Mono Nerd Font", "JetBrains Mono", "monospace"],
+            16,
+        )
 
         self.camera = Camera(
             game_state=game_state,
@@ -123,6 +101,46 @@ class Renderer:
             world_height=simulation.height,
             screen_width=self.width,
             screen_height=self.height,
+        )
+
+    def draw_vector(self, origin, vector, color):
+        """Draw a given vector as a color colored arrow with origin as origin"""
+
+        if vector.length() == 0:
+            return
+
+        end = origin + vector
+
+        direction = vector.normalize()
+        perpendicular = Vector2(-direction.y, direction.x)
+
+        head_length = 6
+        head_width = 2
+
+        left = end - direction * head_length + perpendicular * head_width
+        right = end - direction * head_length - perpendicular * head_width
+
+        start_screen = self.camera.world_to_screen(origin)
+        end_screen = self.camera.world_to_screen(end)
+        left_screen = self.camera.world_to_screen(left)
+        right_screen = self.camera.world_to_screen(right)
+
+        pygame.draw.aaline(
+            self.screen,
+            color,
+            (int(start_screen.x), int(start_screen.y)),
+            (int(end_screen.x), int(end_screen.y)),
+            2,
+        )
+
+        pygame.draw.polygon(
+            self.screen,
+            color,
+            [
+                (int(end_screen.x), int(end_screen.y)),
+                (int(left_screen.x), int(left_screen.y)),
+                (int(right_screen.x), int(right_screen.y)),
+            ],
         )
 
     def draw_boid(self, boid):
@@ -146,6 +164,7 @@ class Renderer:
         body_points = [
             (int(tip.x), int(tip.y)),
             (int(left.x), int(left.y)),
+            (int(boid_screen_position.x), int(boid_screen_position.y)),
             (int(right.x), int(right.y)),
         ]
 
@@ -164,7 +183,22 @@ class Renderer:
 
         # Boid neighbors
         if focused:
-            for neighbor in self.simulation.get_neighbors(boid):
+            neighbors = self.simulation.get_neighbors(boid)
+            candidates = self.simulation.grid.get_local_agents(boid)
+
+            for candidate in candidates:
+                if candidate is boid:
+                    continue
+                c_pos = self.camera.world_to_screen(candidate.position)
+                pygame.draw.line(
+                    self.screen,
+                    "#CBCBCB" if candidate in neighbors else "#393939",
+                    (int(boid_screen_position.x), int(boid_screen_position.y)),
+                    (int(c_pos.x), int(c_pos.y)),
+                    2 if candidate in neighbors else 1,
+                )
+
+            for neighbor in neighbors:
                 if neighbor is boid:
                     continue
                 n_pos = self.camera.world_to_screen(neighbor.position)
@@ -176,16 +210,21 @@ class Renderer:
                     1,
                 )
 
-        # Draw boid body last
+        # Draw boid body
         pygame.draw.polygon(
             self.screen, "#C51313" if focused else boid.color, body_points
         )
+
+        # Vectors
+        if focused:
+            self.draw_vector(boid.position, boid.velocity, "#EDAA46")
 
     def draw_debug(self, camera, fps):
         lines = [
             f"FPS: {fps:.1f}",
             f"Camera: ({camera.position.x:.1f}, {camera.position.y:.1f})",
             f"Zoom: {camera.zoom:.2f}x",
+            f"Total boids: {len(self.simulation.boids)}",
         ]
 
         margin = 10
@@ -224,6 +263,36 @@ class Renderer:
 
             self.screen.blit(text, (x, y))
             i += 1
+
+    def draw_focused_data(self, boid):
+        lines = [
+            f"Boid {id(boid)}",
+            "",
+            f"X {boid.position.x:8.2f}",
+            f"Y {boid.position.y:8.2f}",
+            f"Speed {boid.velocity.length():8.2f}",
+            "",
+            f"Color: {boid.color}",
+            f"Speed range: {boid.min_speed} {boid.max_speed}",
+            "",
+            f"ESC to unfocus",
+        ]
+
+        margin = 10
+        line_height = self.font.get_height() + 3
+        full_height = len(self.game_state.state)
+
+        for i, line in enumerate(lines):
+            text = self.font.render(
+                line,
+                True,
+                "#E5D68B",
+            )
+
+            x = self.width - text.get_width() - margin
+            y = i * line_height + margin
+
+            self.screen.blit(text, (x, y))
 
     def handle_inputs(self, dt):
 
@@ -277,6 +346,9 @@ class Renderer:
 
         for boid in self.simulation.boids:
             self.draw_boid(boid)
+
+        if self.game_state.state["focus"]:
+            self.draw_focused_data(self.game_state.state["focus"])
 
         if self.game_state.state["show_debug"]:
             self.draw_debug(self.camera, fps)
