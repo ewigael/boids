@@ -181,10 +181,17 @@ class Renderer:
         full_height = len(self.game_state.state) - len(hidden_values)
 
         i = 0
-        for line, state in self.game_state.state.items():
+        for line, value in self.game_state.state.items():
             if line in hidden_values:
                 continue
-            text = self.font.render(line, True, "#A1D319" if state else "#DB3A3A")
+            
+            if type(value) == bool:
+                text = self.font.render(line, True, "#A1D319" if value else "#DB3A3A")
+            elif value is None:
+                text = self.font.render(f"{line} = None", True, "#717171")
+            else:
+                text = self.font.render(f"{line} = {value}", True, "#C4C4C4")
+
 
             x = margin
             y = self.height - (full_height - i) * line_height - margin
