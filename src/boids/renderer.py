@@ -4,7 +4,16 @@ from .vector2 import Vector2
 
 
 class Camera:
-    def __init__(self, position, speed, world_width, world_height, screen_width, screen_height, zoom=1.0):
+    def __init__(
+        self,
+        position,
+        speed,
+        world_width,
+        world_height,
+        screen_width,
+        screen_height,
+        zoom=1.0,
+    ):
         """position refers to the simulation's world coordinates"""
         self.position = position
         self.speed = speed
@@ -101,7 +110,7 @@ class Renderer:
         ]
 
         pygame.draw.polygon(self.screen, boid.color, points)
-    
+
     def draw_debug(self, camera, fps):
         lines = [
             f"FPS: {fps:.1f}",
@@ -113,11 +122,7 @@ class Renderer:
         line_height = self.font.get_height() + 3
 
         for i, line in enumerate(lines):
-            text = self.font.render(
-                line,
-                True,
-                "white"
-            )
+            text = self.font.render(line, True, "white")
 
             x = self.width - text.get_width() - margin
             y = self.height - (len(lines) - i) * line_height - margin
