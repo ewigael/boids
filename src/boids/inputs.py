@@ -9,7 +9,7 @@ CONTROLS = [
     ("sim_paused", "K_SPACE", "pressed", False),
     ("quit", "K_q", "pressed", False),
     ("show_state", "K_e", "pressed", False),
-    ("show_debug", "K_r", "pressed", False),
+    ("show_debug", "K_r", "pressed", True),
     ("boids_show_sensor", "K_z", "held", False),
     ("camera_move_left", "K_a", "held", False),
     ("camera_move_up", "K_w", "held", False),
@@ -71,7 +71,6 @@ class GameState:
             key_bindings[c[2]][c[0]] = getattr(pygame, c[1])
             state[c[0]] = c[3]
 
-        print(f"Key Bindings: {json.dumps(key_bindings, indent=4)}")
         print(f"Start State: {json.dumps(state, indent=4)}")
         return key_bindings, state
 
