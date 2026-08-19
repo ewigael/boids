@@ -77,32 +77,6 @@ class Camera:
             relative.y * self.zoom + self.screen_height / 2,
         )
 
-    def handle_inputs(self, dt):
-
-        # Handle camera repositionning
-        movement = Vector2(0, 0)
-        if self.game_state.state["camera_move_left"]:
-            movement.x -= 1
-        if self.game_state.state["camera_move_right"]:
-            movement.x += 1
-        if self.game_state.state["camera_move_up"]:
-            movement.y -= 1
-        if self.game_state.state["camera_move_down"]:
-            movement.y += 1
-
-        camera_movement = movement.length()
-        if camera_movement > 0:
-            if camera_movement > 1:
-                self.move(movement.normalize() * self.speed * dt)
-            else:
-                self.move(movement * self.speed * dt)
-
-        # Handle camera zooming
-        if self.game_state.state["camera_zoom_up"]:
-            self.zoom_by(1 + 2 * dt)
-        if self.game_state.state["camera_zoom_down"]:
-            self.zoom_by(1 - 2 * dt)
-
 
 class Renderer:
     def __init__(self, game_state, width, height, simulation, background="#0C0C0E"):
