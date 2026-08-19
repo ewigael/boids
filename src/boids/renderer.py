@@ -173,15 +173,21 @@ class Renderer:
             self.screen.blit(text, (x, y))
 
     def draw_state(self):
+
+        hidden_values = ["quit", "show_state"]
+
         margin = 10
         line_height = self.font.get_height() + 3
+        full_height = len(self.game_state.state) - len(hidden_values)
 
         i = 0
         for line, state in self.game_state.state.items():
+            if line in hidden_values:
+                continue
             text = self.font.render(line, True, "#A1D319" if state else "#DB3A3A")
 
             x = margin
-            y = self.height - (len(self.game_state.state) - i) * line_height - margin
+            y = self.height - (full_height - i) * line_height - margin
 
             self.screen.blit(text, (x, y))
             i += 1
