@@ -4,40 +4,132 @@ from .vector2 import Vector2
 
 
 class Camera:
-    def __init__(self, position, zoom=1.0):
+    def __init__(self, position, speed, world_width, world_height, screen_width, screen_height, zoom=1.0):
         """position refers to the simulation's world coordinates"""
-        self.postion = position
+        self.position = position
+        self.speed = speed
         self.zoom = zoom
 
-    def world_to_screen(self, world_position, screen_w, screen_h):
-        relative = world_position - self.postion
+        self.min_zoom = min(
+            screen_width / world_width,
+            screen_height / world_height,
+        )
+
+        self.world_width = world_width
+        self.world_height = world_height
+        self.screen_width = screen_width
+        self.screen_height = screen_height
+
+    def clamp_position(self):
+        """Forces the camera's position to adapt to screen size for zooming out"""
+        half_width = self.screen_width / (2 * self.zoom)
+        half_height = self.screen_height / (2 * self.zoom)
+
+        min_x = half_width
+        max_x = self.world_width - half_width
+
+        min_y = half_height
+        max_y = self.world_height - half_height
+
+        self.position.x = max(min_x, min(self.position.x, max_x))
+        self.position.y = max(min_y, min(self.position.y, max_y))
+
+    def move(self, movement):
+        self.position += movement
+        self.clamp_position()
+
+    def set_zoom(self, zoom):
+        self.zoom = max(self.min_zoom, zoom)
+
+        if self.zoom == self.min_zoom:
+            self.center_on_world()
+        else:
+            self.clamp_position()
+
+    def zoom_by(self, factor):
+        self.set_zoom(self.zoom * factor)
+
+    def center_on_world(self):
+        self.position.x = self.world_width / 2
+        self.position.y = self.world_height / 2
+
+    def world_to_screen(self, world_position, screen_width, screen_height):
+        relative = world_position - self.position
+
         return Vector2(
-            relative.x - self.zoom + screen_w / 2,
-            relative.y - self.zoom + screen_h / 2,
+            relative.x * self.zoom + self.screen_width / 2,
+            relative.y * self.zoom + self.screen_height / 2,
         )
 
 
 class Renderer:
-    def __init__(self, width, height, background="#0C0C0E"):
+    def __init__(self, width, height, simulation, background="#0C0C0E"):
 
         self.width = width
         self.height = height
+        self.simulation = simulation
         self.background = background
 
         self.screen = pygame.display.set_mode((width, height))
+        self.font = pygame.font.Font(None, 24)
 
-        self.camera = Camera(position=Vector2(self.width / 2, self.height / 2))
+        self.camera = Camera(
+            position=Vector2(self.width / 2, self.height / 2),
+            speed=1000,
+            world_width=simulation.width,
+            world_height=simulation.height,
+            screen_width=self.width,
+            screen_height=self.height,
+        )
 
-    def draw(self, simulation):
+    def draw_boid(self, boid):
+        position = self.camera.world_to_screen(boid.position, self.width, self.height)
+
+        direction = boid.velocity.normalize()
+        perpendicular = Vector2(-direction.y, direction.x)
+
+        tip = position + direction * 12
+        back = position - direction * 8
+
+        left = back + perpendicular * 6
+        right = back - perpendicular * 6
+
+        points = [
+            (int(tip.x), int(tip.y)),
+            (int(left.x), int(left.y)),
+            (int(right.x), int(right.y)),
+        ]
+
+        pygame.draw.polygon(self.screen, boid.color, points)
+    
+    def draw_debug(self, camera, fps):
+        lines = [
+            f"FPS: {fps:.1f}",
+            f"Camera: ({camera.position.x:.1f}, {camera.position.y:.1f})",
+            f"Zoom: {camera.zoom:.2f}x",
+        ]
+
+        margin = 10
+        line_height = self.font.get_height() + 3
+
+        for i, line in enumerate(lines):
+            text = self.font.render(
+                line,
+                True,
+                "white"
+            )
+
+            x = self.width - text.get_width() - margin
+            y = self.height - (len(lines) - i) * line_height - margin
+
+            self.screen.blit(text, (x, y))
+
+    def draw(self, fps):
         self.screen.fill(self.background)
 
-        for boid in simulation.boids:
-            position = self.camera.world_to_screen(
-                boid.position, self.width, self.height
-            )
+        for boid in self.simulation.boids:
+            self.draw_boid(boid)
 
-            pygame.draw.circle(
-                self.screen, "#AA2FA4", (int(position.x), int(position.y)), 4
-            )
+        self.draw_debug(self.camera, fps)
 
         pygame.display.flip()

@@ -2,6 +2,7 @@ import math
 import random
 
 from .vector2 import Vector2
+from .colors import small_change_hex
 
 
 class Boid:
@@ -13,7 +14,6 @@ class Boid:
         x=0,
         y=0,
         color="#AA2FA4",
-        outline="#19033D",
         speed=30,
         direction=None,
         acceleration=None,
@@ -29,8 +29,7 @@ class Boid:
         self.velocity = direction * speed
         self.acceleration = acceleration
 
-        self.color = color
-        self.outline = outline
+        self.color = small_change_hex(color)
 
     def update(self, dt):
         self.velocity += self.acceleration * dt
