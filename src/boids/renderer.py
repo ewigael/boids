@@ -70,6 +70,32 @@ class Camera:
             relative.y * self.zoom + self.screen_height / 2,
         )
 
+    def handle_inputs(self, inputs, dt):
+
+        movement = Vector2(0, 0)
+
+        if inputs.pressed(pygame.K_a):
+            movement.x -= 1
+        if inputs.pressed(pygame.K_d):
+            movement.x += 1
+        if inputs.pressed(pygame.K_w):
+            movement.y -= 1
+        if inputs.pressed(pygame.K_s):
+            movement.y += 1
+
+        camera_movement = movement.length()
+        if camera_movement > 0:
+            if camera_movement > 1:
+                self.move(movement.normalize() * self.speed * dt)
+            else:
+                self.move(movement * self.speed * dt)
+
+        if inputs.pressed(pygame.K_UP):
+            self.zoom_by(1 - 2 * dt)
+
+        if inputs.pressed(pygame.K_DOWN):
+            self.zoom_by(1 + 2 * dt)
+
 
 class Renderer:
     def __init__(self, width, height, simulation, background="#0C0C0E"):

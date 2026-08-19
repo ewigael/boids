@@ -7,6 +7,7 @@ from .boid import Boid
 from .simulation import Simulation
 from .renderer import Renderer
 from .vector2 import Vector2
+from .inputs import InputManager
 
 WIN_TITLE = "Boids by Akasha"
 
@@ -30,48 +31,17 @@ def main():
     camera = renderer.camera
     clock = pygame.time.Clock()
 
-    running = True
+    inputs = InputManager()
 
-    while running:
+    while not inputs.quit:
 
         dt = clock.tick(60) / 1000.0
+        inputs.update()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
-            if event.type == pygame.KEYDOWN:
-                if event.key in [pygame.K_ESCAPE, pygame.K_q]:
-                    running = False
-
-        if not running:
-            break
-
-        keys = pygame.key.get_pressed()
-        movement = Vector2(0, 0)
-
-        if keys[pygame.K_a]:
-            movement.x -= 1
-        if keys[pygame.K_d]:
-            movement.x += 1
-        if keys[pygame.K_w]:
-            movement.y -= 1
-        if keys[pygame.K_s]:
-            movement.y += 1
-        camera_movement = movement.length()
-        if camera_movement > 0:
-            if camera_movement > 1:
-                camera.move(movement.normalize() * camera.speed * dt)
-            else:
-                camera.move(movement * camera.speed * dt)
-
-        if keys[pygame.K_UP]:
-            camera.zoom_by(1 - 2 * dt)
-
-        if keys[pygame.K_DOWN]:
-            camera.zoom_by(1 + 2 * dt)
+        camera.handle_inputs(inputs, dt)
 
         simulation.update(dt)
+
         renderer.draw(clock.get_fps())
 
     pygame.quit()
