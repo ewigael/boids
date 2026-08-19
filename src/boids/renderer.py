@@ -99,6 +99,45 @@ class Renderer:
             screen_height=self.height,
         )
 
+    def draw_vector(self, origin, vector, color):
+        """Draw a given vector as a color colored arrow with origin as origin"""
+
+        if vector.length() == 0:
+            return
+
+        end = origin + vector
+
+        direction = vector.normalize()
+        perpendicular = Vector2(-direction.y, direction.x)
+
+        head_length = 6
+        head_width = 3
+
+        left = end - direction * head_length + perpendicular * head_width
+        right = end - direction * head_length - perpendicular * head_width
+
+        start_screen = self.camera.world_to_screen(origin)
+        end_screen = self.camera.world_to_screen(end)
+        left_screen = self.camera.world_to_screen(left)
+        right_screen = self.camera.world_to_screen(right)
+
+        pygame.draw.aaline(
+            self.screen,
+            color,
+            (int(start_screen.x), int(start_screen.y)),
+            (int(end_screen.x), int(end_screen.y)),
+        )
+
+        pygame.draw.polygon(
+            self.screen,
+            color,
+            [
+                (int(end_screen.x), int(end_screen.y)),
+                (int(left_screen.x), int(left_screen.y)),
+                (int(right_screen.x), int(right_screen.y)),
+            ],
+        )
+
     def draw_boid(self, boid):
 
         focused = self.game_state.state["focus"] == boid
@@ -150,10 +189,14 @@ class Renderer:
                     1,
                 )
 
-        # Draw boid body last
+        # Draw boid body
         pygame.draw.polygon(
             self.screen, "#C51313" if focused else boid.color, body_points
         )
+
+        # Vectors
+        if focused:
+            self.draw_vector(boid.position, boid.velocity, "#EDAA46")
 
     def draw_debug(self, camera, fps):
         lines = [
