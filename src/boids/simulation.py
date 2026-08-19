@@ -17,6 +17,7 @@ class Simulation:
             Boid(randint(0, width - 1), randint(0, height - 1))
             for _ in range(0, boids_count)
         ]
+        self.game_state.state["boids_count"] = boids_count
 
     def get_neighbors(self, boid):
         return self.boids
