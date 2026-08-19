@@ -3,6 +3,7 @@
 from random import randint
 
 from .boid import Boid
+from .behaviors import flock
 
 
 class Simulation:
@@ -16,7 +17,18 @@ class Simulation:
             for _ in range(0, boids_count)
         ]
 
+    def get_neighbors(self, boid):
+        return []
+
     def update(self, dt):
+
+        for boid in self.boids:
+            neighbors = self.get_neighbors(boid)
+
+            force = flock(boid, neighbors)
+
+            boid.apply_force(force)
+
         for boid in self.boids:
             boid.update(dt)
 

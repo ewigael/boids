@@ -31,6 +31,9 @@ class Boid:
 
         self.color = small_change_hex(color)
 
+    def apply_force(self, force):
+        self.acceleration += force
+
     def update(self, dt):
         self.velocity += self.acceleration * dt
         self.position += self.velocity * dt

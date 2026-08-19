@@ -64,7 +64,7 @@ def main():
                 camera.move(movement.normalize() * camera.speed * dt)
             else:
                 camera.move(movement * camera.speed * dt)
-        
+
         if keys[pygame.K_UP]:
             camera.zoom_by(1 - 2 * dt)
 
