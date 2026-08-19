@@ -18,7 +18,15 @@ class Simulation:
         ]
 
     def get_neighbors(self, boid):
-        return []
+        neighbors = []
+
+        for other in self.boids:
+            if boid is other:
+                continue
+            elif (boid.position + other.position).length() < boid.sensor_range:
+                neighbors.append(other)
+
+        return neighbors
 
     def update(self, dt):
 

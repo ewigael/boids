@@ -31,6 +31,12 @@ class Vector2:
         self.y *= scalar
         return self
 
+    def __truediv__(self, scalar):
+        return Vector2(self.x / scalar, self.y / scalar)
+
+    def __itruediv__(self, scalar):
+        return Vector2(self.x / scalar, self.y / scalar)
+
     def __neg__(self):
         return Vector2(-self.x, -self.y)
 

@@ -7,7 +7,7 @@ from .colors import small_change_hex
 
 class Boid:
 
-    sensor_range = 60
+    sensor_range = 600
 
     def __init__(
         self,
