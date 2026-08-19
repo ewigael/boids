@@ -1,6 +1,23 @@
 """Simple InputManager Class for pygame"""
 
 import pygame
+import json
+
+"""(control name, key, 'pressed'|'held', default value)"""
+# TODO: move to json configuration file
+CONTROLS = [
+    ("sim_paused", "K_SPACE", "pressed", False),
+    ("quit", "K_q", "pressed", False),
+    ("show_state", "K_e", "pressed", False),
+    ("show_debug", "K_r", "pressed", False),
+    ("boids_show_sensor", "K_z", "held", False),
+    ("camera_move_left", "K_a", "held", False),
+    ("camera_move_up", "K_w", "held", False),
+    ("camera_move_right", "K_d", "held", False),
+    ("camera_move_down", "K_s", "held", False),
+    ("camera_zoom_up", "K_UP", "held", False),
+    ("camera_zoom_down", "K_DOWN", "held", False),
+]
 
 
 class InputManager:
@@ -33,74 +50,44 @@ class InputManager:
 
 
 class GameState:
-
-    KEY_BINDINGS = {
-        "pressed": {
-            pygame.K_SPACE: "sim_paused",
-            pygame.K_q: "quit",
-            pygame.K_e: "show_state",
-            pygame.K_r: "show_debug",
-        },
-        "held": {
-            pygame.K_z: "boids_show_sensor",
-            pygame.K_a: "camera_move_left",
-            pygame.K_w: "camera_move_up",
-            pygame.K_d: "camera_move_right",
-            pygame.K_s: "camera_move_down",
-            pygame.K_UP: "camera_zoom_up",
-            pygame.K_DOWN: "camera_zoom_down",
-        },
-    }
-
     def __init__(self):
-
         self.inputs = InputManager()
-
-        self.quit = False
-        self.sim_paused = False
-        self.boids_show_sensor = False
-        self.show_state = True
-        self.show_debug = True
-        self.camera_move_left = False
-        self.camera_move_up = False
-        self.camera_move_right = False
-        self.camera_move_down = False
-        self.camera_zoom_up = False
-        self.camera_zoom_down = False
+        self.key_bindings, self.state = self.build_key_binding(CONTROLS)
 
     def __str__(self):
         lines = [f"{k} = {v}" for k, v in self.get_state().items()]
         return "\n".join(lines)
 
-    def get_state(self):
-        return {
-            "quit": self.quit,
-            "show_state": self.show_state,
-            "show_debug": self.show_debug,
-            "sim_paused": self.sim_paused,
-            "boids_show_sensor": self.boids_show_sensor,
-            "camera_move_left": self.camera_move_left,
-            "camera_move_up": self.camera_move_up,
-            "camera_move_right": self.camera_move_right,
-            "camera_move_down": self.camera_move_down,
-            "camera_zoom_up": self.camera_zoom_up,
-            "camera_zoom_down": self.camera_zoom_down,
-        }
+    def build_key_binding(self, ctrl_list):
+        """Build the key_bindings and state dictionaries from ctrl_list
+        ctrl_list must be formatted as:
+        [(control name, key, "pressed"|"held", default value), ...]
+        """
+        print("Building key bindings...")
+        key_bindings = {"held": {}, "pressed": {}}
+        state = {}
+
+        for c in ctrl_list:
+            key_bindings[c[2]][c[0]] = getattr(pygame, c[1])
+            state[c[0]] = c[3]
+
+        print(f"Key Bindings: {json.dumps(key_bindings, indent=4)}")
+        print(f"Start State: {json.dumps(state, indent=4)}")
+        return key_bindings, state
 
     def handle_inputs(self):
         """
         pressed: toggles the setting
         held: sets the setting to True
         """
-        for key in self.KEY_BINDINGS["pressed"]:
+        for name, key in self.key_bindings["pressed"].items():
             if self.inputs.pressed(key):
-                setting_state = getattr(self, self.KEY_BINDINGS["pressed"][key])
-                setattr(self, self.KEY_BINDINGS["pressed"][key], not setting_state)
+                self.state[name] = not self.state[name]
 
-        for key in self.KEY_BINDINGS["held"]:
-            setattr(self, self.KEY_BINDINGS["held"][key], self.inputs.held(key))
+        for name, key in self.key_bindings["held"].items():
+            self.state[name] = self.inputs.held(key)
 
     def update(self):
         self.inputs.update()
         self.handle_inputs()
-        self.quit = self.inputs.quit or self.quit
+        self.quit = self.inputs.quit or self.state["quit"]

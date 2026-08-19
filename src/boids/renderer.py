@@ -76,13 +76,13 @@ class Camera:
 
         # Handle camera repositionning
         movement = Vector2(0, 0)
-        if self.game_state.camera_move_left:
+        if self.game_state.state["camera_move_left"]:
             movement.x -= 1
-        if self.game_state.camera_move_right:
+        if self.game_state.state["camera_move_right"]:
             movement.x += 1
-        if self.game_state.camera_move_up:
+        if self.game_state.state["camera_move_up"]:
             movement.y -= 1
-        if self.game_state.camera_move_down:
+        if self.game_state.state["camera_move_down"]:
             movement.y += 1
 
         camera_movement = movement.length()
@@ -93,9 +93,9 @@ class Camera:
                 self.move(movement * self.speed * dt)
 
         # Handle camera zooming
-        if self.game_state.camera_zoom_up:
+        if self.game_state.state["camera_zoom_up"]:
             self.zoom_by(1 + 2 * dt)
-        if self.game_state.camera_zoom_down:
+        if self.game_state.state["camera_zoom_down"]:
             self.zoom_by(1 - 2 * dt)
 
 
@@ -142,7 +142,7 @@ class Renderer:
         ]
 
         # Boid sensor
-        if self.game_state.boids_show_sensor:
+        if self.game_state.state["boids_show_sensor"]:
 
             center = self.camera.world_to_screen(boid.position)
             radius = boid.sensor_range * self.camera.zoom
@@ -173,17 +173,15 @@ class Renderer:
             self.screen.blit(text, (x, y))
 
     def draw_state(self):
-        game_state = self.game_state.get_state()
-
         margin = 10
         line_height = self.font.get_height() + 3
 
         i = 0
-        for line, state in game_state.items():
+        for line, state in self.game_state.state.items():
             text = self.font.render(line, True, "#A1D319" if state else "#DB3A3A")
 
             x = margin
-            y = self.height - (len(game_state) - i) * line_height - margin
+            y = self.height - (len(self.game_state.state) - i) * line_height - margin
 
             self.screen.blit(text, (x, y))
             i += 1
@@ -194,9 +192,9 @@ class Renderer:
         for boid in self.simulation.boids:
             self.draw_boid(boid)
 
-        if self.game_state.show_debug:
+        if self.game_state.state["show_debug"]:
             self.draw_debug(self.camera, fps)
-        if self.game_state.show_state:
+        if self.game_state.state["show_state"]:
             self.draw_state()
 
         pygame.display.flip()

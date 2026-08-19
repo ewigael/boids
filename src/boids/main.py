@@ -33,7 +33,7 @@ def main():
     camera = renderer.camera
     clock = pygame.time.Clock()
 
-    while not game_state.quit:
+    while not game_state.state["quit"]:
 
         dt = clock.tick(60) / 1000.0
         game_state.update()
