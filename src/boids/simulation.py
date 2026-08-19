@@ -19,7 +19,6 @@ class Simulation:
         ]
 
     def get_neighbors(self, boid):
-<<<<<<< HEAD
         neighbors = []
 
         for other in self.boids:
@@ -29,9 +28,6 @@ class Simulation:
                 neighbors.append(other)
 
         return neighbors
-=======
-        return self.boids
->>>>>>> dev
 
     def update(self, dt):
 
