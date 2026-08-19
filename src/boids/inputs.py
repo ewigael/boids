@@ -10,6 +10,8 @@ CONTROLS = [
     ("quit", "K_q", "pressed", False),
     ("show_state", "K_e", "pressed", False),
     ("show_debug", "K_r", "pressed", True),
+    ("boids_focus_next", "K_f", "held", True),
+    ("boids_clear_focus", "K_ESCAPE", "held", False),
     ("boids_show_sensor", "K_z", "held", False),
     ("camera_move_left", "K_a", "held", False),
     ("camera_move_up", "K_w", "held", False),
@@ -54,6 +56,10 @@ class GameState:
         self.inputs = InputManager()
         self.key_bindings, self.state = self.build_key_binding(CONTROLS)
 
+        self.state["focus"] = None
+
+        print(f"Start State: {json.dumps(self.state, indent=4)}")
+
     def __str__(self):
         lines = [f"{k} = {v}" for k, v in self.get_state().items()]
         return "\n".join(lines)
@@ -71,7 +77,6 @@ class GameState:
             key_bindings[c[2]][c[0]] = getattr(pygame, c[1])
             state[c[0]] = c[3]
 
-        print(f"Start State: {json.dumps(state, indent=4)}")
         return key_bindings, state
 
     def handle_inputs(self):

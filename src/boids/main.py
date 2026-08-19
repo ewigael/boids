@@ -30,7 +30,6 @@ def main():
 
     simulation = Simulation(game_state, WORLD_WIDTH, WORLD_HEIGHT, BOID_COUNT)
     renderer = Renderer(game_state, SCREEN_WIDTH, SCREEN_HEIGHT, simulation, BACKGROUND)
-    camera = renderer.camera
     clock = pygame.time.Clock()
 
     while not game_state.state["quit"]:
@@ -38,7 +37,7 @@ def main():
         dt = clock.tick(60) / 1000.0
         game_state.update()
 
-        camera.handle_inputs(dt)
+        renderer.handle_inputs(dt)
 
         simulation.update(dt)
 

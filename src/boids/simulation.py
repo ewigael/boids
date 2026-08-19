@@ -19,7 +19,7 @@ class Simulation:
         ]
 
     def get_neighbors(self, boid):
-        return []
+        return self.boids
 
     def update(self, dt):
 

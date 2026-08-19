@@ -60,6 +60,11 @@ class Camera:
     def zoom_by(self, factor):
         self.set_zoom(self.zoom * factor)
 
+    def focus_on(self, boid):
+        self.position.x = boid.position.x
+        self.position.y = boid.position.y
+        self.clamp_position()
+
     def center_on_world(self):
         self.position.x = self.world_width / 2
         self.position.y = self.world_height / 2
@@ -122,6 +127,9 @@ class Renderer:
 
     def draw_boid(self, boid):
 
+        focused = self.game_state.state["focus"] == boid
+
+        boid_screen_position = self.camera.world_to_screen(boid.position)
         direction = boid.velocity.normalize()
 
         # Boid body
@@ -142,17 +150,36 @@ class Renderer:
         ]
 
         # Boid sensor
-        if self.game_state.state["boids_show_sensor"]:
+        if focused or self.game_state.state["boids_show_sensor"]:
 
-            center = self.camera.world_to_screen(boid.position)
             radius = boid.sensor_range * self.camera.zoom
 
             pygame.draw.circle(
-                self.screen, "#444444", (int(center.x), int(center.y)), radius, 1
+                self.screen,
+                "#444444",
+                (int(boid_screen_position.x), int(boid_screen_position.y)),
+                radius,
+                1,
             )
 
+        # Boid neighbors
+        if focused:
+            for neighbor in self.simulation.get_neighbors(boid):
+                if neighbor is boid:
+                    continue
+                n_pos = self.camera.world_to_screen(neighbor.position)
+                pygame.draw.line(
+                    self.screen,
+                    "#CBCBCB",
+                    (int(boid_screen_position.x), int(boid_screen_position.y)),
+                    (int(n_pos.x), int(n_pos.y)),
+                    1,
+                )
+
         # Draw boid body last
-        pygame.draw.polygon(self.screen, boid.color, body_points)
+        pygame.draw.polygon(
+            self.screen, "#C51313" if focused else boid.color, body_points
+        )
 
     def draw_debug(self, camera, fps):
         lines = [
@@ -184,7 +211,7 @@ class Renderer:
         for line, value in self.game_state.state.items():
             if line in hidden_values:
                 continue
-            
+
             if type(value) == bool:
                 text = self.font.render(line, True, "#A1D319" if value else "#DB3A3A")
             elif value is None:
@@ -192,15 +219,61 @@ class Renderer:
             else:
                 text = self.font.render(f"{line} = {value}", True, "#C4C4C4")
 
-
             x = margin
             y = self.height - (full_height - i) * line_height - margin
 
             self.screen.blit(text, (x, y))
             i += 1
 
+    def handle_inputs(self, dt):
+
+        # CAMERA ####
+        # Repositionning
+        movement = Vector2(0, 0)
+        if self.game_state.state["camera_move_left"]:
+            movement.x -= 1
+        if self.game_state.state["camera_move_right"]:
+            movement.x += 1
+        if self.game_state.state["camera_move_up"]:
+            movement.y -= 1
+        if self.game_state.state["camera_move_down"]:
+            movement.y += 1
+
+        camera_movement = movement.length()
+        if camera_movement > 0:
+            if camera_movement > 1:
+                self.camera.move(movement.normalize() * self.camera.speed * dt)
+            else:
+                self.camera.move(movement * self.camera.speed * dt)
+
+        # Zooming
+        if self.game_state.state["camera_zoom_up"]:
+            self.camera.zoom_by(1 + 2 * dt)
+        if self.game_state.state["camera_zoom_down"]:
+            self.camera.zoom_by(1 - 2 * dt)
+
+        # FOCUS ####
+        # Focusing
+        if self.game_state.state["boids_focus_next"]:
+            if self.game_state.state["focus"]:
+                self.game_state.state["focus"] = self.simulation.boids[
+                    (self.simulation.boids.index(self.game_state.state["focus"]) + 1)
+                    % len(self.simulation.boids)
+                ]
+            else:
+                self.game_state.state["focus"] = self.simulation.boids[0]
+
+            self.camera.set_zoom(3)
+
+        # Clearing focus
+        if self.game_state.state["boids_clear_focus"]:
+            self.game_state.state["focus"] = None
+
     def draw(self, fps):
         self.screen.fill(self.background)
+
+        if self.game_state.state["focus"]:
+            self.camera.focus_on(self.game_state.state["focus"])
 
         for boid in self.simulation.boids:
             self.draw_boid(boid)
