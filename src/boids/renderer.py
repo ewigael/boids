@@ -94,9 +94,9 @@ class Camera:
 
         # Handle camera zooming
         if self.game_state.camera_zoom_up:
-            self.zoom_by(1 - 2 * dt)
-        if self.game_state.camera_zoom_down:
             self.zoom_by(1 + 2 * dt)
+        if self.game_state.camera_zoom_down:
+            self.zoom_by(1 - 2 * dt)
 
 
 class Renderer:
