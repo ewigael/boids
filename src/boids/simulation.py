@@ -53,7 +53,7 @@ class Simulation:
         ]
         self.game_state.state["boids_count"] = boids_count
 
-        self.grid = SpatialGrid(100)
+        self.grid = SpatialGrid(60)
         self.grid.rebuild(self.boids)
 
     def get_neighbors(self, boid):
