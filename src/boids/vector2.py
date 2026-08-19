@@ -5,7 +5,7 @@ class Vector2:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-    
+
     def __str__(self):
         return f"Vector2(x = {self.x}, y = {self.y})"
 
@@ -30,6 +30,12 @@ class Vector2:
         self.x *= scalar
         self.y *= scalar
         return self
+
+    def __truediv__(self, scalar):
+        return Vector2(self.x / scalar, self.y / scalar)
+
+    def __itruediv__(self, scalar):
+        return Vector2(self.x / scalar, self.y / scalar)
 
     def __neg__(self):
         return Vector2(-self.x, -self.y)

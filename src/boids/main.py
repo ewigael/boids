@@ -7,6 +7,7 @@ from .boid import Boid
 from .simulation import Simulation
 from .renderer import Renderer
 from .vector2 import Vector2
+from .inputs import GameState
 
 WIN_TITLE = "Boids by Akasha"
 
@@ -18,61 +19,42 @@ BACKGROUND = "#0C0C0E"
 WORLD_WIDTH = 1920
 WORLD_HEIGHT = 1080
 
-BOID_COUNT = 1000
+BOID_COUNT = 200
 
 
 def main():
 
     pygame.init()
 
-    simulation = Simulation(WORLD_WIDTH, WORLD_HEIGHT, BOID_COUNT)
-    renderer = Renderer(SCREEN_WIDTH, SCREEN_HEIGHT, simulation, BACKGROUND)
-    camera = renderer.camera
+    game_state = GameState()
+
+    simulation = Simulation(game_state, WORLD_WIDTH, WORLD_HEIGHT, BOID_COUNT)
+    renderer = Renderer(game_state, SCREEN_WIDTH, SCREEN_HEIGHT, simulation, BACKGROUND)
     clock = pygame.time.Clock()
 
-    running = True
-
-    while running:
+    while not game_state.state["quit"]:
 
         dt = clock.tick(60) / 1000.0
+        game_state.update()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+        t_start = pygame.time.get_ticks()
 
-            if event.type == pygame.KEYDOWN:
-                if event.key in [pygame.K_ESCAPE, pygame.K_q]:
-                    running = False
-
-        if not running:
-            break
-
-        keys = pygame.key.get_pressed()
-        movement = Vector2(0, 0)
-
-        if keys[pygame.K_a]:
-            movement.x -= 1
-        if keys[pygame.K_d]:
-            movement.x += 1
-        if keys[pygame.K_w]:
-            movement.y -= 1
-        if keys[pygame.K_s]:
-            movement.y += 1
-        camera_movement = movement.length()
-        if camera_movement > 0:
-            if camera_movement > 1:
-                camera.move(movement.normalize() * camera.speed * dt)
-            else:
-                camera.move(movement * camera.speed * dt)
-        
-        if keys[pygame.K_UP]:
-            camera.zoom_by(1 - 2 * dt)
-
-        if keys[pygame.K_DOWN]:
-            camera.zoom_by(1 + 2 * dt)
+        renderer.handle_inputs(dt)
+        t_renderer_handle_inputs = pygame.time.get_ticks()
 
         simulation.update(dt)
+        t_sim_update = pygame.time.get_ticks()
+
         renderer.draw(clock.get_fps())
+        t_renderer_draw = pygame.time.get_ticks()
+
+        game_state.state["t_renderer_handle_inputs"] = (
+            f"{t_renderer_handle_inputs - t_start} ms"
+        )
+        game_state.state["t_sim_update"] = (
+            f"{t_sim_update - t_renderer_handle_inputs} ms"
+        )
+        game_state.state["t_renderer_draw"] = f"{t_renderer_draw - t_sim_update} ms"
 
     pygame.quit()
 
