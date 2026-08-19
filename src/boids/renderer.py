@@ -87,7 +87,11 @@ class Renderer:
         self.background = background
 
         self.screen = pygame.display.set_mode((width, height))
-        self.font = pygame.font.Font(None, 24)
+        # self.font = pygame.font.Font(None, 24)
+        self.font = pygame.font.SysFont(
+            ["JetBrains Mono Nerd Font", "JetBrains Mono", "monospace"],
+            16,
+        )
 
         self.camera = Camera(
             game_state=game_state,
@@ -126,7 +130,7 @@ class Renderer:
             color,
             (int(start_screen.x), int(start_screen.y)),
             (int(end_screen.x), int(end_screen.y)),
-            2
+            2,
         )
 
         pygame.draw.polygon(
@@ -205,6 +209,7 @@ class Renderer:
             f"FPS: {fps:.1f}",
             f"Camera: ({camera.position.x:.1f}, {camera.position.y:.1f})",
             f"Zoom: {camera.zoom:.2f}x",
+            f"Total boids: {len(self.simulation.boids)}",
         ]
 
         margin = 10
@@ -243,6 +248,36 @@ class Renderer:
 
             self.screen.blit(text, (x, y))
             i += 1
+
+    def draw_focused_data(self, boid):
+        lines = [
+            f"Boid {id(boid)}",
+            "",
+            f"X {boid.position.x:8.2f}",
+            f"Y {boid.position.y:8.2f}",
+            f"Speed {boid.velocity.length():8.2f}",
+            "",
+            f"Color: {boid.color}",
+            f"Speed range: {boid.min_speed} {boid.max_speed}",
+            "",
+            f"ESC to unfocus",
+        ]
+
+        margin = 10
+        line_height = self.font.get_height() + 3
+        full_height = len(self.game_state.state)
+
+        for i, line in enumerate(lines):
+            text = self.font.render(
+                line,
+                True,
+                "#E5D68B",
+            )
+
+            x = self.width - text.get_width() - margin
+            y = i * line_height + margin
+
+            self.screen.blit(text, (x, y))
 
     def handle_inputs(self, dt):
 
@@ -296,6 +331,9 @@ class Renderer:
 
         for boid in self.simulation.boids:
             self.draw_boid(boid)
+
+        if self.game_state.state["focus"]:
+            self.draw_focused_data(self.game_state.state["focus"])
 
         if self.game_state.state["show_debug"]:
             self.draw_debug(self.camera, fps)
