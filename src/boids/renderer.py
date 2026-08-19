@@ -159,6 +159,7 @@ class Renderer:
         body_points = [
             (int(tip.x), int(tip.y)),
             (int(left.x), int(left.y)),
+            (int(boid_screen_position.x), int(boid_screen_position.y)),
             (int(right.x), int(right.y)),
         ]
 
