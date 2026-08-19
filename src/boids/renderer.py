@@ -111,7 +111,7 @@ class Renderer:
         perpendicular = Vector2(-direction.y, direction.x)
 
         head_length = 6
-        head_width = 3
+        head_width = 2
 
         left = end - direction * head_length + perpendicular * head_width
         right = end - direction * head_length - perpendicular * head_width
@@ -126,6 +126,7 @@ class Renderer:
             color,
             (int(start_screen.x), int(start_screen.y)),
             (int(end_screen.x), int(end_screen.y)),
+            2
         )
 
         pygame.draw.polygon(
