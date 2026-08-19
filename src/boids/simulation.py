@@ -23,6 +23,9 @@ class Simulation:
 
     def update(self, dt):
 
+        if self.game_state.sim_paused:
+            return
+
         for boid in self.boids:
             neighbors = self.get_neighbors(boid)
 
