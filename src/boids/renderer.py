@@ -6,6 +6,7 @@ from .vector2 import Vector2
 class Camera:
     def __init__(
         self,
+        game_state,
         position,
         speed,
         world_width,
@@ -15,6 +16,7 @@ class Camera:
         zoom=1.0,
     ):
         """position refers to the simulation's world coordinates"""
+        self.game_state = game_state
         self.position = position
         self.speed = speed
         self.zoom = zoom
@@ -70,17 +72,17 @@ class Camera:
             relative.y * self.zoom + self.screen_height / 2,
         )
 
-    def handle_inputs(self, inputs, dt):
+    def handle_inputs(self, dt):
 
+        # Handle camera repositionning
         movement = Vector2(0, 0)
-
-        if inputs.pressed(pygame.K_a):
+        if self.game_state.camera_move_left:
             movement.x -= 1
-        if inputs.pressed(pygame.K_d):
+        if self.game_state.camera_move_right:
             movement.x += 1
-        if inputs.pressed(pygame.K_w):
+        if self.game_state.camera_move_up:
             movement.y -= 1
-        if inputs.pressed(pygame.K_s):
+        if self.game_state.camera_move_down:
             movement.y += 1
 
         camera_movement = movement.length()
@@ -90,16 +92,16 @@ class Camera:
             else:
                 self.move(movement * self.speed * dt)
 
-        if inputs.pressed(pygame.K_UP):
+        # Handle camera zooming
+        if self.game_state.camera_zoom_up:
             self.zoom_by(1 - 2 * dt)
-
-        if inputs.pressed(pygame.K_DOWN):
+        if self.game_state.camera_zoom_down:
             self.zoom_by(1 + 2 * dt)
 
 
 class Renderer:
-    def __init__(self, width, height, simulation, background="#0C0C0E"):
-
+    def __init__(self, game_state, width, height, simulation, background="#0C0C0E"):
+        self.game_state = game_state
         self.width = width
         self.height = height
         self.simulation = simulation
@@ -109,6 +111,7 @@ class Renderer:
         self.font = pygame.font.Font(None, 24)
 
         self.camera = Camera(
+            game_state=game_state,
             position=Vector2(self.width / 2, self.height / 2),
             speed=1000,
             world_width=simulation.width,
@@ -155,6 +158,22 @@ class Renderer:
 
             self.screen.blit(text, (x, y))
 
+    def draw_state(self):
+        game_state = self.game_state.get_state()
+
+        margin = 10
+        line_height = self.font.get_height() + 3
+
+        i = 0
+        for line, state in game_state.items():
+            text = self.font.render(line, True, "#A1D319" if state else "#DB3A3A")
+
+            x = margin
+            y = self.height - (len(game_state) - i) * line_height - margin
+
+            self.screen.blit(text, (x, y))
+            i += 1
+
     def draw(self, fps):
         self.screen.fill(self.background)
 
@@ -162,5 +181,7 @@ class Renderer:
             self.draw_boid(boid)
 
         self.draw_debug(self.camera, fps)
+        if self.game_state.show_state:
+            self.draw_state()
 
         pygame.display.flip()

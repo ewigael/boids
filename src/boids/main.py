@@ -7,7 +7,7 @@ from .boid import Boid
 from .simulation import Simulation
 from .renderer import Renderer
 from .vector2 import Vector2
-from .inputs import InputManager
+from .inputs import GameState
 
 WIN_TITLE = "Boids by Akasha"
 
@@ -26,19 +26,19 @@ def main():
 
     pygame.init()
 
-    simulation = Simulation(WORLD_WIDTH, WORLD_HEIGHT, BOID_COUNT)
-    renderer = Renderer(SCREEN_WIDTH, SCREEN_HEIGHT, simulation, BACKGROUND)
+    game_state = GameState()
+
+    simulation = Simulation(game_state, WORLD_WIDTH, WORLD_HEIGHT, BOID_COUNT)
+    renderer = Renderer(game_state, SCREEN_WIDTH, SCREEN_HEIGHT, simulation, BACKGROUND)
     camera = renderer.camera
     clock = pygame.time.Clock()
 
-    inputs = InputManager()
-
-    while not inputs.quit:
+    while not game_state.quit:
 
         dt = clock.tick(60) / 1000.0
-        inputs.update()
+        game_state.update()
 
-        camera.handle_inputs(inputs, dt)
+        camera.handle_inputs(dt)
 
         simulation.update(dt)
 

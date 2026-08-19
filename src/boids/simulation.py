@@ -8,7 +8,8 @@ from .behaviors import flock
 
 class Simulation:
 
-    def __init__(self, width, height, boids_count):
+    def __init__(self, game_state, width, height, boids_count):
+        self.game_state = game_state
         self.width = width
         self.height = height
 
