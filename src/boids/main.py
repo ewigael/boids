@@ -37,11 +37,24 @@ def main():
         dt = clock.tick(60) / 1000.0
         game_state.update()
 
+        t_start = pygame.time.get_ticks()
+
         renderer.handle_inputs(dt)
+        t_renderer_handle_inputs = pygame.time.get_ticks()
 
         simulation.update(dt)
+        t_sim_update = pygame.time.get_ticks()
 
         renderer.draw(clock.get_fps())
+        t_renderer_draw = pygame.time.get_ticks()
+
+        game_state.state["t_renderer_handle_inputs"] = (
+            f"{t_renderer_handle_inputs - t_start} ms"
+        )
+        game_state.state["t_sim_update"] = (
+            f"{t_sim_update - t_renderer_handle_inputs} ms"
+        )
+        game_state.state["t_renderer_draw"] = f"{t_renderer_draw - t_sim_update} ms"
 
     pygame.quit()
 
