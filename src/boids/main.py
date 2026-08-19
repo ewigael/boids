@@ -32,6 +32,8 @@ def main():
     renderer = Renderer(game_state, SCREEN_WIDTH, SCREEN_HEIGHT, simulation, BACKGROUND)
     clock = pygame.time.Clock()
 
+    pygame.display.set_caption(WIN_TITLE)
+
     while not game_state.state["quit"]:
 
         dt = clock.tick(60) / 1000.0
