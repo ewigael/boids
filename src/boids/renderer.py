@@ -194,7 +194,8 @@ class Renderer:
         for boid in self.simulation.boids:
             self.draw_boid(boid)
 
-        self.draw_debug(self.camera, fps)
+        if self.game_state.show_debug:
+            self.draw_debug(self.camera, fps)
         if self.game_state.show_state:
             self.draw_state()
 

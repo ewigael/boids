@@ -39,9 +39,10 @@ class GameState:
             pygame.K_SPACE: "sim_paused",
             pygame.K_q: "quit",
             pygame.K_e: "show_state",
+            pygame.K_r: "show_debug",
         },
         "held": {
-            pygame.K_r: "boids_show_sensor",
+            pygame.K_z: "boids_show_sensor",
             pygame.K_a: "camera_move_left",
             pygame.K_w: "camera_move_up",
             pygame.K_d: "camera_move_right",
@@ -58,7 +59,8 @@ class GameState:
         self.quit = False
         self.sim_paused = False
         self.boids_show_sensor = False
-        self.show_state = False
+        self.show_state = True
+        self.show_debug = True
         self.camera_move_left = False
         self.camera_move_up = False
         self.camera_move_right = False
@@ -73,9 +75,10 @@ class GameState:
     def get_state(self):
         return {
             "quit": self.quit,
+            "show_state": self.show_state,
+            "show_debug": self.show_debug,
             "sim_paused": self.sim_paused,
             "boids_show_sensor": self.boids_show_sensor,
-            "show_state": self.show_state,
             "camera_move_left": self.camera_move_left,
             "camera_move_up": self.camera_move_up,
             "camera_move_right": self.camera_move_right,
