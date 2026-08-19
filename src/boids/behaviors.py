@@ -8,7 +8,12 @@ def separation(boid, neighbors):
 
     for other in neighbors:
         offset = boid.position - other.position
-        steering += offset.normalize() / offset.length()
+        distance = offset.length()
+        if distance == 0:
+            continue
+
+        strength = max(0, boid.sensor_range - distance) / boid.sensor_range
+        steering += offset.normalize() * strength
 
     return steering
 
@@ -19,6 +24,6 @@ def flock(boid, neighbors):
     if not len(neighbors):
         return force
 
-    force += separation(boid, neighbors) * 500
+    force += separation(boid, neighbors) * 50
 
     return force
