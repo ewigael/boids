@@ -10,7 +10,6 @@ def separation(boid, neighbors):
         offset = boid.position - other.position
         steering += offset.normalize() / offset.length()
 
-    print(steering)
     return steering
 
 
