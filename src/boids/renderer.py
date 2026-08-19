@@ -64,7 +64,7 @@ class Camera:
         self.position.x = self.world_width / 2
         self.position.y = self.world_height / 2
 
-    def world_to_screen(self, world_position, screen_width, screen_height):
+    def world_to_screen(self, world_position):
         relative = world_position - self.position
 
         return Vector2(
@@ -121,16 +121,19 @@ class Renderer:
         )
 
     def draw_boid(self, boid):
-        position = self.camera.world_to_screen(boid.position, self.width, self.height)
 
         direction = boid.velocity.normalize()
         perpendicular = Vector2(-direction.y, direction.x)
 
-        tip = position + direction * 12
-        back = position - direction * 8
+        tip = boid.position + direction * 12
+        back = boid.position - direction * 8
 
         left = back + perpendicular * 6
         right = back - perpendicular * 6
+
+        tip = self.camera.world_to_screen(tip)
+        left = self.camera.world_to_screen(left)
+        right = self.camera.world_to_screen(right)
 
         points = [
             (int(tip.x), int(tip.y)),
