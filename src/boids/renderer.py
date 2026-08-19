@@ -183,7 +183,22 @@ class Renderer:
 
         # Boid neighbors
         if focused:
-            for neighbor in self.simulation.get_neighbors(boid):
+            neighbors = self.simulation.get_neighbors(boid)
+            candidates = self.simulation.grid.get_local_agents(boid)
+
+            for candidate in candidates:
+                if candidate is boid:
+                    continue
+                c_pos = self.camera.world_to_screen(candidate.position)
+                pygame.draw.line(
+                    self.screen,
+                    "#CBCBCB" if candidate in neighbors else "#393939",
+                    (int(boid_screen_position.x), int(boid_screen_position.y)),
+                    (int(c_pos.x), int(c_pos.y)),
+                    2 if candidate in neighbors else 1,
+                )
+
+            for neighbor in neighbors:
                 if neighbor is boid:
                     continue
                 n_pos = self.camera.world_to_screen(neighbor.position)
