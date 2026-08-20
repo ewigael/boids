@@ -80,9 +80,7 @@ class PerformanceLogger:
             else:
                 self.tags_data[name].append(v)
 
-        print(time.time() - self._avgs_counter)
         if time.time() - self._avgs_counter >= self.avgs_step:
-            print("reset averages")
             self._set_averages()
             self.tags_data.clear()
             self._avgs_counter = time.time()
