@@ -263,7 +263,7 @@ class Renderer:
         if "perf" in debug_mode:
             for logger in PerformanceLogger.loggers:
                 lines.append((f"Performance Logger #{logger.name}", "#D9D9D9"))
-                for name, delta in logger.get_deltas():
+                for name, delta in logger.get_averages():
                     lines.append((f"{name} {delta:>9s}", "#D9D9D9"))
 
         for i, (line, color) in enumerate(lines):
