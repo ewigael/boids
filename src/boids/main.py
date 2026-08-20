@@ -1,13 +1,9 @@
-import tkinter as tk
-from random import randint
-import time
 import pygame
 
-from .boid import Boid
+from .inputs import InputManager
+from .gamestate import GameState
 from .simulation import Simulation
 from .renderer import Renderer
-from .vector2 import Vector2
-from .inputs import GameState
 
 WIN_TITLE = "Boids by Akasha"
 
@@ -26,37 +22,26 @@ def main():
 
     pygame.init()
 
-    game_state = GameState()
+    inputs = InputManager()
+    gamestate = GameState()
 
-    simulation = Simulation(game_state, WORLD_WIDTH, WORLD_HEIGHT, BOID_COUNT)
-    renderer = Renderer(game_state, SCREEN_WIDTH, SCREEN_HEIGHT, simulation, BACKGROUND)
+    simulation = Simulation(gamestate, WORLD_WIDTH, WORLD_HEIGHT, BOID_COUNT)
+    renderer = Renderer(
+        gamestate, simulation, SCREEN_WIDTH, SCREEN_HEIGHT, WIN_TITLE, BACKGROUND
+    )
+
     clock = pygame.time.Clock()
 
-    pygame.display.set_caption(WIN_TITLE)
-
-    while not game_state.state["quit"]:
-
+    while not gamestate.state["quit"]:
+        
         dt = clock.tick(60) / 1000.0
-        game_state.update()
 
-        t_start = pygame.time.get_ticks()
-
-        renderer.handle_inputs(dt)
-        t_renderer_handle_inputs = pygame.time.get_ticks()
+        inputs.update()
+        gamestate.update(inputs)
 
         simulation.update(dt)
-        t_sim_update = pygame.time.get_ticks()
-
+        renderer.handle_inputs(dt)
         renderer.draw(clock.get_fps())
-        t_renderer_draw = pygame.time.get_ticks()
-
-        game_state.state["t_renderer_handle_inputs"] = (
-            f"{t_renderer_handle_inputs - t_start} ms"
-        )
-        game_state.state["t_sim_update"] = (
-            f"{t_sim_update - t_renderer_handle_inputs} ms"
-        )
-        game_state.state["t_renderer_draw"] = f"{t_renderer_draw - t_sim_update} ms"
 
     pygame.quit()
 
