@@ -2,7 +2,7 @@ import pygame
 
 from .vector2 import Vector2
 from .perflog import PerformanceLogger
-from .colors import value_to_color_gradient
+from .colors import value_to_color_gradient_linear, value_to_color_gradient_log
 
 DEBUG_CYCLE = [None, "fps", "fps_cam", "fps_cam_perf"]
 
@@ -266,7 +266,7 @@ class Renderer:
                 lines.append((f"Performance Logger #{logger.name}", "#F5F5F5"))
 
                 for name, delta, true in logger.get_averages():
-                    color = value_to_color_gradient(
+                    color = value_to_color_gradient_log(
                         true,
                         0.05 * 1e-6,
                         10 * 1e-3,
