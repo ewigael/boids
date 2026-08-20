@@ -60,15 +60,15 @@ def sep_ali_coh(boid, neighbors):
     average_position = Vector2(0, 0)
 
     sensor = boid.sensor_range
+    inv_sensor = 1 / sensor
 
     for other in neighbors:
         offset = boid.position - other.position
         distance = offset.length()
 
-        if distance > 0:
-            strength = (max(0, sensor - distance) / sensor) ** 3
-            if strength > 0:
-                separation += offset * (strength / distance)
+        if distance > 0 and sensor > distance:
+            strength = ((sensor - distance) * inv_sensor) ** 3
+            separation += offset * (strength / distance)
 
         average_velocity += other.velocity
         average_position += other.position
@@ -80,8 +80,9 @@ def sep_ali_coh(boid, neighbors):
     alignment = average_velocity - boid.velocity
     cohesion = average_position - boid.position
 
-    if alignment.length() > MAX_ALIGNMENT:
-        alignment = alignment.normalize() * MAX_ALIGNMENT
+    ali_len = alignment.length()
+    if ali_len > MAX_ALIGNMENT:
+        alignment = alignment.normalize(ali_len) * MAX_ALIGNMENT
 
     return (
         separation * SEPARATION_STR
@@ -91,7 +92,7 @@ def sep_ali_coh(boid, neighbors):
 
 
 def flock(boid, neighbors):
-    if not len(neighbors):
+    if not neighbors:
         return Vector2(0, 0)
     else:
         return sep_ali_coh(boid, neighbors)
