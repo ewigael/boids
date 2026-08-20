@@ -62,14 +62,13 @@ class Simulation:
 
     def get_neighbors(self, boid):
 
-        candidates = self.grid.get_local_agents(boid)
-
         neighbors = []
+        candidates = self.grid.get_local_agents(boid)
 
         for other in candidates:
             if boid is other:
                 continue
-            elif (boid.position - other.position).length() < boid.sensor_range:
+            elif boid.is_in_range(other):
                 neighbors.append(other)
 
         return neighbors
