@@ -5,6 +5,7 @@ import pygame
 
 from .boid import Boid
 from .behaviors import flock
+from .perflog import PerformanceLogger
 
 
 class SpatialGrid:
@@ -57,6 +58,8 @@ class Simulation:
         self.grid = SpatialGrid(60)
         self.grid.rebuild(self.boids)
 
+        self.perflog = PerformanceLogger("Simulation", avgs_step=0.5)
+
     def get_neighbors(self, boid):
 
         candidates = self.grid.get_local_agents(boid)
@@ -73,52 +76,36 @@ class Simulation:
 
     def update(self, dt):
 
-        t_start = pygame.time.get_ticks()
+        self.perflog.start()
 
         if self.game_state.state["sim_paused"]:
             return
 
         self.grid.rebuild(self.boids)
 
-        t_grid_rebuild = pygame.time.get_ticks()
+        self.perflog.add("grid rebuild")
 
         neighbor_list = []
 
         for boid in self.boids:
             neighbor_list.append(self.get_neighbors(boid))
 
-        t_sim_update_neighbors_listing = pygame.time.get_ticks()
+        self.perflog.add("update neighbors listing")
 
         for boid, neighbors in zip(self.boids, neighbor_list):
             force = flock(boid, neighbors)
             boid.apply_force(force)
 
-        t_boids_compute = pygame.time.get_ticks()
+        self.perflog.add("boids compute")
 
         for boid in self.boids:
             boid.update(dt)
 
-        t_boids_update = pygame.time.get_ticks()
+        self.perflog.add("boids update")
 
         self.wrap_boids()
 
-        t_boids_wrap = pygame.time.get_ticks()
-
-        self.game_state.state["t_sim_update_grid_rebuild"] = (
-            f"{t_grid_rebuild - t_start} ms"
-        )
-        self.game_state.state["t_sim_update_neighbors_listing"] = (
-            f"{t_sim_update_neighbors_listing - t_grid_rebuild} ms"
-        )
-        self.game_state.state["t_sim_update_boids_compute"] = (
-            f"{t_boids_compute - t_sim_update_neighbors_listing} ms"
-        )
-        self.game_state.state["t_sim_update_boids_update"] = (
-            f"{t_boids_update - t_boids_compute} ms"
-        )
-        self.game_state.state["t_sim_update_boids_wrap"] = (
-            f"{t_boids_wrap - t_boids_update} ms"
-        )
+        self.perflog.add("boids wrap")
 
     def wrap_boids(self):
 
