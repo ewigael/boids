@@ -1,6 +1,7 @@
 """Small module to manipulate color values"""
 
 import colorsys
+import math
 from random import uniform
 
 
@@ -35,3 +36,24 @@ def small_change_hex(hex_color):
     lightness = max(0.0, min(1.0, lightness))
 
     return hls_to_hex(hue, saturation, lightness)
+
+
+def value_to_color_gradient(
+    value, min_value, max_value, color_start="#70A5A3", color_end="#FF4343"
+):
+    """Return color value as part of a gradient defined in parameters through logarythmic interpolation"""
+
+    value = max(min_value, min(value, max_value))
+
+    hls_start = hex_to_hls(color_start)
+    hls_end = hex_to_hls(color_end)
+
+    t = (math.log(value) - math.log(min_value)) / (
+        math.log(max_value) - math.log(min_value)
+    )
+
+    h = hls_start[0] + (hls_end[0] - hls_start[0]) * t
+    l = hls_start[1] + (hls_end[1] - hls_start[1]) * t
+    s = hls_start[2] + (hls_end[2] - hls_start[2]) * t
+
+    return hls_to_hex(h, l, s)
