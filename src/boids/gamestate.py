@@ -1,0 +1,76 @@
+import pygame
+import json
+
+"""(control name, key, 'toggle'|'action'|'held', default value)
+    toggle is persistent
+    action is played once
+    held is continues boolean assignement
+"""
+# TODO: move to json configuration file
+BINDINGS = [
+    ("sim_paused", "K_SPACE", "pressed", False),
+    ("quit", "K_q", "held", False),
+    ("show_state", "K_e", "pressed", False),
+    ("show_debug", "K_r", "pressed", True),
+    ("boids_focus_next", "K_f", "action", False),
+    ("boids_clear_focus", "K_ESCAPE", "held", False),
+    ("boids_show_sensor", "K_z", "held", False),
+    ("camera_move_left", "K_a", "held", False),
+    ("camera_move_up", "K_w", "held", False),
+    ("camera_move_right", "K_d", "held", False),
+    ("camera_move_down", "K_s", "held", False),
+    ("camera_zoom_up", "K_UP", "held", False),
+    ("camera_zoom_down", "K_DOWN", "held", False),
+]
+
+
+class GameState:
+    """Interprets inputs and update internal game state to be read by simulation and renderer"""
+
+    def __init__(self):
+
+        print("Initialising game state")
+        self.key_bindings, self.state = self.build_key_binding(BINDINGS)
+
+        self.state["focus"] = None
+        self.state["boids_count"] = None
+
+        print(f"Start State: {json.dumps(self.state, indent=4)}")
+
+    def build_key_binding(self, ctrl_list):
+        """Build the key_bindings and state dictionaries from ctrl_list
+        ctrl_list must be formatted as:
+        [(control name, key, "pressed"|"held", default value), ...]
+        """
+        print("Building key bindings")
+        key_bindings = {"held": {}, "action": {}, "pressed": {}}
+        state = {}
+
+        for c in ctrl_list:
+            key_bindings[c[2]][c[0]] = getattr(pygame, c[1])
+            state[c[0]] = c[3]
+
+        return key_bindings, state
+
+    def update(self, inputs):
+        """Update internal game state by handling inputs from InputManager"""
+
+        # interpret events
+        self.state["win_resize"] = inputs.resize
+
+        # interpret bindings
+        # Toggles
+        for name, key in self.key_bindings["pressed"].items():
+            if inputs.pressed(key):
+                self.state[name] = not self.state[name]
+
+        # Continuous
+        for name, key in self.key_bindings["held"].items():
+            self.state[name] = inputs.held(key)
+
+        # Once
+        for name, key in self.key_bindings["action"].items():
+            self.state[name] = inputs.pressed(key)
+
+        # As the quit order can come from an event or keybinding it's updated last
+        self.state["quit"] = inputs.quit or self.state["quit"]
