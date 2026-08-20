@@ -15,7 +15,7 @@ def separation(boid, neighbors):
             continue
 
         strength = (max(0, boid.sensor_range - distance) / boid.sensor_range) ** 3
-        steering += offset.normalize() * strength
+        steering += offset * (strength / distance)
 
     return steering
 
