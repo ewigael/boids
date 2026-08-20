@@ -1,6 +1,9 @@
 import pygame
 
 from .vector2 import Vector2
+from .perflog import PerformanceLogger
+
+DEBUG_CYCLE = [None, "fps", "fps_cam", "fps_cam_perf"]
 
 
 class Camera:
@@ -99,7 +102,12 @@ class Renderer:
         win_title="Akashic Renderer",
         background="#0C0C0E",
     ):
+        print("Initialising Renderer...")
         self.gamestate = gamestate.state
+
+        self.gamestate["focus"] = None
+        self.gamestate["show_debug"] = "fps_cam_perf"
+
         self.width = width
         self.height = height
         self.simulation = simulation
@@ -237,22 +245,31 @@ class Renderer:
             self.draw_vector(boid.position, boid.velocity, "#EDAA46")
 
     def draw_debug(self, camera, fps):
-        lines = [
-            f"FPS: {fps:.1f}",
-            f"Camera: ({camera.position.x:.1f}, {camera.position.y:.1f})",
-            f"Zoom: {camera.zoom:.2f}x",
-            f"Total boids: {len(self.simulation.boids)}",
-        ]
 
+        debug_mode = self.gamestate["show_debug"]
         margin = 10
         line_height = self.font.get_height() + 3
+        lines = []
 
-        for i, line in enumerate(lines):
-            text = self.font.render(line, True, "white")
+        if "fps" in debug_mode:
+            lines.append((f"FPS: {fps:.1f}", "white"))
 
+        if "cam" in debug_mode:
+            lines.append(
+                (f"Camera: ({camera.position.x:.1f}, {camera.position.y:.1f})", "white")
+            )
+            lines.append((f"Zoom: {camera.zoom:.2f}x", "white"))
+
+        if "perf" in debug_mode:
+            for logger in PerformanceLogger.loggers:
+                lines.append((f"Performance Logger #{logger.name}", "#D9D9D9"))
+                for name, delta in logger.get_deltas():
+                    lines.append((f"{name} {delta:>9s}", "#D9D9D9"))
+
+        for i, (line, color) in enumerate(lines):
+            text = self.font.render(line, True, color)
             x = self.width - text.get_width() - margin
             y = self.height - (len(lines) - i) * line_height - margin
-
             self.screen.blit(text, (x, y))
 
     def draw_state(self):
@@ -366,6 +383,13 @@ class Renderer:
             self.height = new_h
             self.camera.set_screen_size(new_w, new_h)
             self.gamestate["win_resize"] = None
+
+        # DEBUG ####
+        # cycle show_debug
+        if self.gamestate["show_debug_next"]:
+            self.gamestate["show_debug"] = DEBUG_CYCLE[
+                (DEBUG_CYCLE.index(self.gamestate["show_debug"]) + 1) % len(DEBUG_CYCLE)
+            ]
 
     def draw(self, fps):
         """Read game state to know what and how to draw it"""

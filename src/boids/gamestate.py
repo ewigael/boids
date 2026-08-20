@@ -11,7 +11,7 @@ BINDINGS = [
     ("sim_paused", "K_SPACE", "pressed", False),
     ("quit", "K_q", "held", False),
     ("show_state", "K_e", "pressed", False),
-    ("show_debug", "K_r", "pressed", True),
+    ("show_debug_next", "K_r", "action", False),
     ("boids_focus_next", "K_f", "action", False),
     ("boids_clear_focus", "K_ESCAPE", "held", False),
     ("boids_show_sensor", "K_z", "held", False),
