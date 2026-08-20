@@ -32,7 +32,6 @@ class GameState:
         print("Initialising game state")
         self.key_bindings, self.state = self.build_key_binding(BINDINGS)
 
-        self.state["focus"] = None
         self.state["boids_count"] = None
 
         print(f"Start State: {json.dumps(self.state, indent=4)}")
