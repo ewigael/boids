@@ -19,15 +19,12 @@ class Camera:
         self.speed = speed
         self.zoom = zoom
 
-        self.min_zoom = min(
-            screen_width / world_width,
-            screen_height / world_height,
-        )
-
         self.world_width = world_width
         self.world_height = world_height
         self.screen_width = screen_width
         self.screen_height = screen_height
+
+        self.min_zoom = self.get_min_zoom()
 
     def clamp_position(self):
         """Forces the camera's position to adapt to screen size for zooming out"""
@@ -43,17 +40,25 @@ class Camera:
         self.position.x = max(min_x, min(self.position.x, max_x))
         self.position.y = max(min_y, min(self.position.y, max_y))
 
+    def get_min_zoom(self):
+        return max(
+            self.screen_width / self.world_width, self.screen_height / self.world_height
+        )
+
+    def set_screen_size(self, new_w, new_h):
+        self.screen_width = new_w
+        self.screen_height = new_h
+
+        self.min_zoom = self.get_min_zoom()
+        self.set_zoom(self.zoom)
+
     def move(self, movement):
         self.position += movement
         self.clamp_position()
 
     def set_zoom(self, zoom):
         self.zoom = max(self.min_zoom, zoom)
-
-        if self.zoom == self.min_zoom:
-            self.center_on_world()
-        else:
-            self.clamp_position()
+        self.clamp_position()
 
     def zoom_by(self, factor):
         self.set_zoom(self.zoom * factor)
@@ -353,8 +358,7 @@ class Renderer:
             new_w, new_h = self.gamestate["win_resize"]
             self.width = new_w
             self.height = new_h
-            self.camera.screen_width = new_w
-            self.camera.screen_height = new_h
+            self.camera.set_screen_size(new_w, new_h)
             self.gamestate["win_resize"] = None
 
     def draw(self, fps):
