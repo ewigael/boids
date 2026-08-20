@@ -6,30 +6,33 @@ from .vector2 import Vector2
 class Camera:
     def __init__(
         self,
-        game_state,
-        position,
-        speed,
         world_width,
         world_height,
         screen_width,
         screen_height,
-        zoom=1.0,
+        position=None,
+        speed=1000,
+        zoom=None,
     ):
         """position refers to the simulation's world coordinates"""
-        self.game_state = game_state
-        self.position = position
         self.speed = speed
-        self.zoom = zoom
-
-        self.min_zoom = min(
-            screen_width / world_width,
-            screen_height / world_height,
-        )
 
         self.world_width = world_width
         self.world_height = world_height
         self.screen_width = screen_width
         self.screen_height = screen_height
+
+        if position:
+            self.position = position
+        else:
+            self.position = Vector2(0, 0)
+            self.center_on_world()
+
+        self.min_zoom = self.get_min_zoom()
+        if zoom:
+            self.zoom = zoom
+        else:
+            self.zoom = self.min_zoom
 
     def clamp_position(self):
         """Forces the camera's position to adapt to screen size for zooming out"""
@@ -45,17 +48,25 @@ class Camera:
         self.position.x = max(min_x, min(self.position.x, max_x))
         self.position.y = max(min_y, min(self.position.y, max_y))
 
+    def get_min_zoom(self):
+        return max(
+            self.screen_width / self.world_width, self.screen_height / self.world_height
+        )
+
+    def set_screen_size(self, new_w, new_h):
+        self.screen_width = new_w
+        self.screen_height = new_h
+
+        self.min_zoom = self.get_min_zoom()
+        self.set_zoom(self.zoom)
+
     def move(self, movement):
         self.position += movement
         self.clamp_position()
 
     def set_zoom(self, zoom):
         self.zoom = max(self.min_zoom, zoom)
-
-        if self.zoom == self.min_zoom:
-            self.center_on_world()
-        else:
-            self.clamp_position()
+        self.clamp_position()
 
     def zoom_by(self, factor):
         self.set_zoom(self.zoom * factor)
@@ -79,24 +90,30 @@ class Camera:
 
 
 class Renderer:
-    def __init__(self, game_state, width, height, simulation, background="#0C0C0E"):
-        self.game_state = game_state
+    def __init__(
+        self,
+        gamestate,
+        simulation,
+        width=1920,
+        height=1080,
+        win_title="Akashic Renderer",
+        background="#0C0C0E",
+    ):
+        self.gamestate = gamestate.state
         self.width = width
         self.height = height
         self.simulation = simulation
         self.background = background
 
-        self.screen = pygame.display.set_mode((width, height))
-        # self.font = pygame.font.Font(None, 24)
+        self.screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
+        pygame.display.set_caption(win_title)
+
         self.font = pygame.font.SysFont(
             ["JetBrains Mono Nerd Font", "JetBrains Mono", "monospace"],
             16,
         )
 
         self.camera = Camera(
-            game_state=game_state,
-            position=Vector2(self.width / 2, self.height / 2),
-            speed=1000,
             world_width=simulation.width,
             world_height=simulation.height,
             screen_width=self.width,
@@ -145,7 +162,7 @@ class Renderer:
 
     def draw_boid(self, boid):
 
-        focused = self.game_state.state["focus"] == boid
+        focused = self.gamestate["focus"] == boid
 
         boid_screen_position = self.camera.world_to_screen(boid.position)
         direction = boid.velocity.normalize()
@@ -169,7 +186,7 @@ class Renderer:
         ]
 
         # Boid sensor
-        if focused or self.game_state.state["boids_show_sensor"]:
+        if focused or self.gamestate["boids_show_sensor"]:
 
             radius = boid.sensor_range * self.camera.zoom
 
@@ -244,10 +261,10 @@ class Renderer:
 
         margin = 10
         line_height = self.font.get_height() + 3
-        full_height = len(self.game_state.state) - len(hidden_values)
+        full_height = len(self.gamestate) - len(hidden_values)
 
         i = 0
-        for line, value in self.game_state.state.items():
+        for line, value in self.gamestate.items():
             if line in hidden_values:
                 continue
 
@@ -283,7 +300,7 @@ class Renderer:
 
         margin = 10
         line_height = self.font.get_height() + 3
-        full_height = len(self.game_state.state)
+        full_height = len(self.gamestate)
 
         for i, line in enumerate(lines):
             text = self.font.render(
@@ -302,13 +319,13 @@ class Renderer:
         # CAMERA ####
         # Repositionning
         movement = Vector2(0, 0)
-        if self.game_state.state["camera_move_left"]:
+        if self.gamestate["camera_move_left"]:
             movement.x -= 1
-        if self.game_state.state["camera_move_right"]:
+        if self.gamestate["camera_move_right"]:
             movement.x += 1
-        if self.game_state.state["camera_move_up"]:
+        if self.gamestate["camera_move_up"]:
             movement.y -= 1
-        if self.game_state.state["camera_move_down"]:
+        if self.gamestate["camera_move_down"]:
             movement.y += 1
 
         camera_movement = movement.length()
@@ -319,43 +336,55 @@ class Renderer:
                 self.camera.move(movement * self.camera.speed * dt)
 
         # Zooming
-        if self.game_state.state["camera_zoom_up"]:
+        if self.gamestate["camera_zoom_up"]:
             self.camera.zoom_by(1 + 2 * dt)
-        if self.game_state.state["camera_zoom_down"]:
+        if self.gamestate["camera_zoom_down"]:
             self.camera.zoom_by(1 - 2 * dt)
 
         # FOCUS ####
         # Focusing
-        if self.game_state.state["boids_focus_next"]:
-            if self.game_state.state["focus"]:
-                self.game_state.state["focus"] = self.simulation.boids[
-                    (self.simulation.boids.index(self.game_state.state["focus"]) + 1)
+        if self.gamestate["boids_focus_next"]:
+            if self.gamestate["focus"]:
+                self.gamestate["focus"] = self.simulation.boids[
+                    (self.simulation.boids.index(self.gamestate["focus"]) + 1)
                     % len(self.simulation.boids)
                 ]
             else:
-                self.game_state.state["focus"] = self.simulation.boids[0]
+                self.gamestate["focus"] = self.simulation.boids[0]
 
             self.camera.set_zoom(3)
 
         # Clearing focus
-        if self.game_state.state["boids_clear_focus"]:
-            self.game_state.state["focus"] = None
+        if self.gamestate["boids_clear_focus"]:
+            self.gamestate["focus"] = None
+
+        # WINDOW ####
+        # Resizing
+        if self.gamestate["win_resize"]:
+            new_w, new_h = self.gamestate["win_resize"]
+            self.width = new_w
+            self.height = new_h
+            self.camera.set_screen_size(new_w, new_h)
+            self.gamestate["win_resize"] = None
 
     def draw(self, fps):
+        """Read game state to know what and how to draw it"""
+
         self.screen.fill(self.background)
 
-        if self.game_state.state["focus"]:
-            self.camera.focus_on(self.game_state.state["focus"])
+        if self.gamestate["focus"]:
+            self.camera.focus_on(self.gamestate["focus"])
 
         for boid in self.simulation.boids:
             self.draw_boid(boid)
 
-        if self.game_state.state["focus"]:
-            self.draw_focused_data(self.game_state.state["focus"])
+        if self.gamestate["focus"]:
+            self.draw_focused_data(self.gamestate["focus"])
 
-        if self.game_state.state["show_debug"]:
+        if self.gamestate["show_debug"]:
             self.draw_debug(self.camera, fps)
-        if self.game_state.state["show_state"]:
+
+        if self.gamestate["show_state"]:
             self.draw_state()
 
         pygame.display.flip()
