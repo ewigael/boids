@@ -66,4 +66,4 @@ class GameState:
             self.state[name] = inputs.held(key)
 
         # As the quit order can come from an event or keybinding it's updated last
-        self.quit = inputs.quit or self.state["quit"]
+        self.state["quit"] = inputs.quit or self.state["quit"]
