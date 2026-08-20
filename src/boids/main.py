@@ -33,7 +33,7 @@ def main():
     clock = pygame.time.Clock()
 
     while not gamestate.state["quit"]:
-        
+
         dt = clock.tick(60) / 1000.0
 
         inputs.update()
