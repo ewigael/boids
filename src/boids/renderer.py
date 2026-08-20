@@ -349,6 +349,13 @@ class Renderer:
 
         # WINDOW ####
         # Resizing
+        if self.gamestate["win_resize"]:
+            new_w, new_h = self.gamestate["win_resize"]
+            self.width = new_w
+            self.height = new_h
+            self.camera.screen_width = new_w
+            self.camera.screen_height = new_h
+            self.gamestate["win_resize"] = None
 
     def draw(self, fps):
         """Read game state to know what and how to draw it"""
