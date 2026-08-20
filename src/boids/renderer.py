@@ -6,25 +6,33 @@ from .vector2 import Vector2
 class Camera:
     def __init__(
         self,
-        position,
-        speed,
         world_width,
         world_height,
         screen_width,
         screen_height,
-        zoom=1.0,
+        position=None,
+        speed=1000,
+        zoom=None,
     ):
         """position refers to the simulation's world coordinates"""
-        self.position = position
         self.speed = speed
-        self.zoom = zoom
 
         self.world_width = world_width
         self.world_height = world_height
         self.screen_width = screen_width
         self.screen_height = screen_height
 
+        if position:
+            self.position = position
+        else:
+            self.position = Vector2(0, 0)
+            self.center_on_world()
+
         self.min_zoom = self.get_min_zoom()
+        if zoom:
+            self.zoom = zoom
+        else:
+            self.zoom = self.min_zoom
 
     def clamp_position(self):
         """Forces the camera's position to adapt to screen size for zooming out"""
@@ -106,8 +114,6 @@ class Renderer:
         )
 
         self.camera = Camera(
-            position=Vector2(self.width / 2, self.height / 2),
-            speed=1000,
             world_width=simulation.width,
             world_height=simulation.height,
             screen_width=self.width,
