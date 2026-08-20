@@ -51,7 +51,8 @@ class PerformanceLogger:
         #              f"{vs:.2f}s" if vs >= 1
         #         else f"{vs * 1e3:.2f}ms" if vs >= 1e-3
         #         else f"{vs * 1e6:.2f}μs" if vs >= 1e-6
-        #         else f"{vs * 1e9:.2f}ns"
+        #         else f"{vs * 1e9:.2f}ns",
+        #         vs
         #     ) for name, vs in self._get_deltas()
         # ]
         return [
@@ -66,6 +67,7 @@ class PerformanceLogger:
                         else f"{vs * 1e6:.2f}μs" if vs >= 1e-6 else f"{vs * 1e9:.2f}ns"
                     )
                 ),
+                vs,
             )
             for name, vs in self._get_deltas()
         ]
@@ -97,6 +99,7 @@ class PerformanceLogger:
                         else f"{vs * 1e6:.2f}μs" if vs >= 1e-6 else f"{vs * 1e9:.2f}ns"
                     )
                 ),
+                vs,
             )
             for name, vs in self.avgs.items()
         ]
@@ -107,6 +110,7 @@ class PerformanceLogger:
         #              f"{vs:.2f}s" if vs >= 1
         #         else f"{vs * 1e3:.2f}ms" if vs >= 1e-3
         #         else f"{vs * 1e6:.2f}μs" if vs >= 1e-6
-        #         else f"{vs * 1e9:.2f}ns"
+        #         else f"{vs * 1e9:.2f}ns",
+        #         vs
         #     ) for name, vs in self.avgs.items()
         # ]
