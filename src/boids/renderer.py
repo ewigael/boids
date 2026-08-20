@@ -2,6 +2,7 @@ import pygame
 
 from .vector2 import Vector2
 from .perflog import PerformanceLogger
+from .colors import value_to_color_gradient
 
 DEBUG_CYCLE = [None, "fps", "fps_cam", "fps_cam_perf"]
 
@@ -262,9 +263,16 @@ class Renderer:
 
         if "perf" in debug_mode:
             for logger in PerformanceLogger.loggers:
-                lines.append((f"Performance Logger #{logger.name}", "#D9D9D9"))
-                for name, delta in logger.get_averages():
-                    lines.append((f"{name} {delta:>9s}", "#D9D9D9"))
+                lines.append((f"Performance Logger #{logger.name}", "#F5F5F5"))
+
+                for name, delta, true in logger.get_averages():
+                    color = value_to_color_gradient(
+                        true,
+                        0.05 * 1e-6,
+                        10 * 1e-3,
+                    )
+
+                    lines.append((f"{name} {delta:>9s}", color))
 
         for i, (line, color) in enumerate(lines):
             text = self.font.render(line, True, color)
