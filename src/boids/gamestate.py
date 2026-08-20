@@ -1,9 +1,10 @@
 import pygame
 import json
 
-"""(control name, key, 'pressed'|'held', default value)
-    pressed is a toggle
-    held is boolean assignement
+"""(control name, key, 'toggle'|'action'|'held', default value)
+    toggle is persistent
+    action is played once
+    held is continues boolean assignement
 """
 # TODO: move to json configuration file
 BINDINGS = [
@@ -11,7 +12,7 @@ BINDINGS = [
     ("quit", "K_q", "held", False),
     ("show_state", "K_e", "pressed", False),
     ("show_debug", "K_r", "pressed", True),
-    ("boids_focus_next", "K_f", "held", True),
+    ("boids_focus_next", "K_f", "action", False),
     ("boids_clear_focus", "K_ESCAPE", "held", False),
     ("boids_show_sensor", "K_z", "held", False),
     ("camera_move_left", "K_a", "held", False),
@@ -42,7 +43,7 @@ class GameState:
         [(control name, key, "pressed"|"held", default value), ...]
         """
         print("Building key bindings")
-        key_bindings = {"held": {}, "pressed": {}}
+        key_bindings = {"held": {}, "action": {}, "pressed": {}}
         state = {}
 
         for c in ctrl_list:
@@ -58,12 +59,18 @@ class GameState:
         self.state["win_resize"] = inputs.resize
 
         # interpret bindings
+        # Toggles
         for name, key in self.key_bindings["pressed"].items():
             if inputs.pressed(key):
                 self.state[name] = not self.state[name]
 
+        # Continuous
         for name, key in self.key_bindings["held"].items():
             self.state[name] = inputs.held(key)
+
+        # Once
+        for name, key in self.key_bindings["action"].items():
+            self.state[name] = inputs.pressed(key)
 
         # As the quit order can come from an event or keybinding it's updated last
         self.state["quit"] = inputs.quit or self.state["quit"]
