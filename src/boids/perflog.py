@@ -23,19 +23,15 @@ class PerformanceLogger:
 
     def start(self):
         self.clear()
-        self.add("start")
+        self.tags = [("start", self.tick())]
 
     def add(self, name):
-        self.tags.append((name, self.tick()))
+        now = self.tick()
+        self.tags_data.setdefault(name, []).append(now - self.tags[-1][1])
+        self.tags.append((name, now))
 
     def clear(self):
         self.tags.clear()
-
-    def _get_deltas(self):
-        return [
-            (name, v - prev_v)
-            for (_, prev_v), (name, v) in zip(self.tags, self.tags[1:])
-        ]
 
     def _set_averages(self):
         """Compute averages from stored data"""
@@ -59,33 +55,31 @@ class PerformanceLogger:
             (
                 name,
                 (
-                    f"{vs:.2f}s"
-                    if vs >= 1
+                    f"{vs[-1]:.2f}s"
+                    if vs[-1] >= 1
                     else (
-                        f"{vs * 1e3:.2f}ms"
-                        if vs >= 1e-3
-                        else f"{vs * 1e6:.2f}μs" if vs >= 1e-6 else f"{vs * 1e9:.2f}ns"
+                        f"{vs[-1] * 1e3:.2f}ms"
+                        if vs[-1] >= 1e-3
+                        else (
+                            f"{vs[-1] * 1e6:.2f}μs"
+                            if vs[-1] >= 1e-6
+                            else f"{vs[-1] * 1e9:.2f}ns"
+                        )
                     )
                 ),
-                vs,
+                vs[-1],
             )
-            for name, vs in self._get_deltas()
+            for name, vs in self.tags_data.items()
         ]
 
     def get_averages(self):
         if self._avgs_counter is None:
-            self._avgs_counter = time.time()
+            self._avgs_counter = self.tick()
 
-        for name, v in self._get_deltas():
-            if name not in self.tags_data:
-                self.tags_data[name] = [v]
-            else:
-                self.tags_data[name].append(v)
-
-        if time.time() - self._avgs_counter >= self.avgs_step:
+        if self.tick() - self._avgs_counter >= self.avgs_step:
             self._set_averages()
             self.tags_data.clear()
-            self._avgs_counter = time.time()
+            self._avgs_counter = self.tick()
 
         return [
             (
