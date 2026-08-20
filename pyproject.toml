@@ -1,6 +1,6 @@
 [project]
 name = "boids"
-version = "1.1.1"
+version = "1.2.0"
 requires-python = ">=3.14"
 
 [project.scripts]
