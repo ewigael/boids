@@ -86,8 +86,8 @@ class Renderer:
         self.simulation = simulation
         self.background = background
 
-        self.screen = pygame.display.set_mode((width, height))
-        # self.font = pygame.font.Font(None, 24)
+        self.screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
+
         self.font = pygame.font.SysFont(
             ["JetBrains Mono Nerd Font", "JetBrains Mono", "monospace"],
             16,
