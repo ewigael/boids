@@ -27,10 +27,10 @@ class SpatialGrid:
         for b in boids:
             self.add(b)
 
-    def get_local_agents(self, boid, search_range=1):
+    def get_local_agents(self, target, search_range=1):
         """Return a list of all agents in neighboring cells, searching a square of size search_range * 2 + 1"""
         agents = []
-        cell_x, cell_y = self.get_cell(boid.position)
+        cell_x, cell_y = self.get_cell(target)
 
         for dx in range(-search_range, search_range + 1):
             for dy in range(-search_range, search_range + 1):
@@ -40,9 +40,9 @@ class SpatialGrid:
 
         return agents
 
-    def iter_local_agents(self, boid, search_range=1):
+    def iter_local_agents(self, target, search_range=1):
         """Iterative version of get_local_agents"""
-        cell_x, cell_y = self.get_cell(boid.position)
+        cell_x, cell_y = self.get_cell(target)
 
         for dx in range(-search_range, search_range + 1):
             for dy in range(-search_range, search_range + 1):
@@ -73,7 +73,7 @@ class Simulation:
     def get_neighbors(self, boid):
         neighbors = []
 
-        for other in self.grid.iter_local_agents(boid):
+        for other in self.grid.iter_local_agents(boid.position):
             if boid is other:
                 continue
             elif boid.is_in_range(other):
