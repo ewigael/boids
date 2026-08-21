@@ -29,19 +29,17 @@ class GameState:
 
     def __init__(self):
 
-        print("Initialising game state")
+        print("Initialising Game State...")
         self.key_bindings, self.state = self.build_key_binding(BINDINGS)
 
         self.state["boids_count"] = None
-
-        print(f"Start State: {json.dumps(self.state, indent=4)}")
 
     def build_key_binding(self, ctrl_list):
         """Build the key_bindings and state dictionaries from ctrl_list
         ctrl_list must be formatted as:
         [(control name, key, "pressed"|"held", default value), ...]
         """
-        print("Building key bindings")
+        print("Building Key Bindings...")
         key_bindings = {"held": {}, "action": {}, "pressed": {}}
         state = {}
 
