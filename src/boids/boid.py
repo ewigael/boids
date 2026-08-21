@@ -39,7 +39,7 @@ class Boid:
         this is used to avoid repeated square root computations when doing
         (boid.position - other.position).length() < boid.sensor_range
 
-        Should be ran against cndidates provided by a spatial grid"""
+        Should be ran against candidates provided by a spatial grid"""
 
         spos = self.position
         opos = other.position
@@ -53,15 +53,22 @@ class Boid:
 
     def update(self, dt):
 
-        speed = self.velocity.length()
+        # Applying acceleration
+        self.velocity.x += self.acceleration.x * dt
+        self.velocity.y += self.acceleration.y * dt
 
-        if speed < self.min_speed:
-            self.velocity = self.velocity.normalize() * self.min_speed
+        # Speed clamping
+        speed_squared = self.velocity.x**2 + self.velocity.y**2
+        if speed_squared < self.min_speed**2 or speed_squared > self.max_speed**2:
+            speed = self.velocity.length()
+            if speed != 0:
+                factor = (
+                    self.min_speed if speed < self.min_speed else self.max_speed
+                ) / speed
+                self.velocity *= factor
 
-        if speed > self.max_speed:
-            self.velocity = self.velocity.normalize() * self.max_speed
-
-        self.velocity += self.acceleration * dt
-        self.position += self.velocity * dt
+        # Updating position
+        self.position.x += self.velocity.x * dt
+        self.position.y += self.velocity.y * dt
 
         self.acceleration *= 0
