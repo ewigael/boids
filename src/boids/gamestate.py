@@ -54,6 +54,8 @@ class GameState:
 
         # interpret events
         self.state["win_resize"] = inputs.resize
+        self.state["zoom_on_mouse"] = inputs.mouse_wheel
+        self.state["mouse_pos"] = inputs.mouse_position
 
         # interpret bindings
         # Toggles
