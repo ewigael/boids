@@ -14,8 +14,11 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 
 - Zoom on mouse with mouse wheel
 - InputManager now exposes mouse inputs (pressed & held) and events
+- Relevent states added to GameState
 
 ### Changed
+
+- gamestate focus / show_debug inital states are now set in GameState.__init__() rather than Renderer
 
 ### Removed
 
