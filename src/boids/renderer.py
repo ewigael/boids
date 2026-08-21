@@ -75,6 +75,14 @@ class Camera:
     def zoom_by(self, factor):
         self.set_zoom(self.zoom * factor)
 
+    def zoom_at(self, target, factor):
+        before = self.screen_to_world(target)
+        self.zoom_by(factor)
+        after = self.screen_to_world(target)
+
+        self.position += before - after
+        self.clamp_position()
+
     def focus_on(self, boid):
         self.position.x = boid.position.x
         self.position.y = boid.position.y
@@ -376,6 +384,13 @@ class Renderer:
             self.camera.zoom_by(1 + 2 * dt)
         if self.gamestate["camera_zoom_down"]:
             self.camera.zoom_by(1 - 2 * dt)
+
+        # Zooming on mouse
+        if self.gamestate["camera_zoom_on_mouse"]:
+            self.camera.zoom_at(
+                self.gamestate["mouse_pos"],
+                1 + 3 * dt * self.gamestate["camera_zoom_on_mouse"],
+            )
 
         # FOCUS ####
         # Focusing

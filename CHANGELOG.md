@@ -12,6 +12,8 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 
 ### Added
 
+- Zoom on mouse with mouse wheel
+
 ### Changed
 
 ### Removed
