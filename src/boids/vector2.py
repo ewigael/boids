@@ -35,7 +35,9 @@ class Vector2:
         return Vector2(self.x / scalar, self.y / scalar)
 
     def __itruediv__(self, scalar):
-        return Vector2(self.x / scalar, self.y / scalar)
+        self.x /= scalar
+        self.y /= scalar
+        return self
 
     def __neg__(self):
         return Vector2(-self.x, -self.y)
@@ -49,8 +51,9 @@ class Vector2:
     def length(self):
         return sqrt(self.x**2 + self.y**2)
 
-    def normalize(self):
-        length = self.length()
+    def normalize(self, length=None):
+        if not length:
+            length = self.length()
         if length == 0:
             return Vector2(0, 0)
         return Vector2(self.x / length, self.y / length)

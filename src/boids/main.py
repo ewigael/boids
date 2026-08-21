@@ -1,9 +1,11 @@
 import pygame
 
+from . import print_metadata
 from .inputs import InputManager
 from .gamestate import GameState
 from .simulation import Simulation
 from .renderer import Renderer
+from .perflog import PerformanceLogger
 
 WIN_TITLE = "Boids by Akasha"
 
@@ -19,6 +21,9 @@ BOID_COUNT = 200
 
 
 def main():
+    print_metadata()
+
+    perflog = PerformanceLogger("main")
 
     pygame.init()
 
@@ -36,12 +41,20 @@ def main():
 
         dt = clock.tick(60) / 1000.0
 
+        perflog.start()
         inputs.update()
+        perflog.add("inputs update")
         gamestate.update(inputs)
+        perflog.add("game state update")
 
         simulation.update(dt)
+        perflog.add("simulation update")
+
         renderer.handle_inputs(dt)
+        perflog.add("renderer handle inputs")
+
         renderer.draw(clock.get_fps())
+        perflog.add("renderer draw")
 
     pygame.quit()
 

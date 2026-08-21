@@ -1,13 +1,24 @@
 [project]
 name = "boids"
-version = "1.1.1"
+version = "1.3.0"
+description = "Python Boids Simulation"
+authors = [
+    { name = "Akasha Mouginot", email = "akasha.mouginot@protonmail.com" }
+]
 requires-python = ">=3.14"
+dependencies = ["pygame-ce>=2.5.8"]
+
+[project.urls]
+Repository = "https://github.com/ewigael/boids"
+Issues = "https://github.com/ewigael/boids/issues"
+Changelog = "https://github.com/ewigael/boids/blob/main/CHANGELOG.md"
+Readme = "https://github.com/ewigael/boids/blob/main/README.md"
 
 [project.scripts]
 boids = "boids.main:main"
 
 [build-system]
-requires = ["setuptools>=80", "pygame-ce>=2.5.8"]
+requires = ["setuptools>=80"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
