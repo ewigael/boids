@@ -427,6 +427,12 @@ class Renderer:
 
         self.screen.fill(self.background)
 
+        if self.gamestate["focus_on"]:
+            self.gamestate["focus"] = self.simulation.find_boid_at(
+                self.camera.screen_to_world(self.gamestate["focus_on"])
+            )
+            self.gamestate["focus_on"] = None
+
         if self.gamestate["focus"]:
             self.camera.focus_on(self.gamestate["focus"])
 
