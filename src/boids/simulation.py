@@ -40,6 +40,16 @@ class SpatialGrid:
 
         return agents
 
+    def iter_local_agents(self, boid, search_range=1):
+        """Iterative version of get_local_agents"""
+        cell_x, cell_y = self.get_cell(boid.position)
+
+        for dx in range(-search_range, search_range + 1):
+            for dy in range(-search_range, search_range + 1):
+                cell = (cell_x + dx, cell_y + dy)
+                if cell in self.cells:
+                    yield from self.cells[cell]
+
 
 class Simulation:
 
@@ -61,15 +71,12 @@ class Simulation:
         self.perflog = PerformanceLogger("Simulation", avgs_step=0.5)
 
     def get_neighbors(self, boid):
-
-        candidates = self.grid.get_local_agents(boid)
-
         neighbors = []
 
-        for other in candidates:
+        for other in self.grid.iter_local_agents(boid):
             if boid is other:
                 continue
-            elif (boid.position - other.position).length() < boid.sensor_range:
+            elif boid.is_in_range(other):
                 neighbors.append(other)
 
         return neighbors

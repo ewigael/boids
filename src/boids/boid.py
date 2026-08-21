@@ -10,6 +10,7 @@ class Boid:
     sensor_range = 60
     min_speed = 60
     max_speed = 200
+    sensor_range_squared = 60**2
 
     def __init__(
         self,
@@ -32,6 +33,20 @@ class Boid:
         self.acceleration = acceleration
 
         self.color = small_change_hex(color)
+
+    def is_in_range(self, other):
+        """Tells if another boid is in range of this one.
+        this is used to avoid repeated square root computations when doing
+        (boid.position - other.position).length() < boid.sensor_range
+
+        Should be ran against cndidates provided by a spatial grid"""
+
+        spos = self.position
+        opos = other.position
+
+        return (spos.x - opos.x) ** 2 + (
+            spos.y - opos.y
+        ) ** 2 < self.sensor_range_squared
 
     def apply_force(self, force):
         self.acceleration += force
