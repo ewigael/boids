@@ -2,10 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+![](https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExdmo1bjR4OGo2c2s3NDNwODl0dG9ndzUyYjcyazJ5ZG1ocGJpNHRpNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LQzsPQoWkAnu06jCf6/giphy.gif)
+
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html),
+and this programmer does her best to follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
 
 ## Unreleased
+
+### Added
+
+### Changed
+
+### Removed
+
+### Fixed
+
+## [1.3.0]
 
 ### Added
 
