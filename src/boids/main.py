@@ -1,5 +1,6 @@
 import pygame
 
+from . import print_metadata
 from .inputs import InputManager
 from .gamestate import GameState
 from .simulation import Simulation
@@ -20,6 +21,7 @@ BOID_COUNT = 200
 
 
 def main():
+    print_metadata()
 
     perflog = PerformanceLogger("main")
 
