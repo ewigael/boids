@@ -14,7 +14,8 @@ class SpatialGrid:
         self.cells = {}
 
     def get_cell(self, position):
-        return (position.x // self.cell_size, position.y // self.cell_size)
+        x, y = position
+        return (x // self.cell_size, y // self.cell_size)
 
     def add(self, boid):
         cell = self.get_cell(boid.position)
