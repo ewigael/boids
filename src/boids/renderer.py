@@ -92,6 +92,17 @@ class Camera:
             relative.y * self.zoom + self.screen_height / 2,
         )
 
+    def screen_to_world(self, screen_position):
+        if type(screen_position) == Vector2:
+            spos_x, spos_y = screen_position.x, screen_position.y
+        elif type(screen_position) == tuple:
+            spos_x, spos_y = screen_position
+
+        return Vector2(
+            (spos_x - self.screen_width / 2) / self.zoom + self.position.x,
+            (spos_y - self.screen_height / 2) / self.zoom + self.position.y,
+        )
+
 
 class Renderer:
     def __init__(
