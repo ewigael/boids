@@ -226,7 +226,7 @@ class Renderer:
         # Boid neighbors
         if focused:
             neighbors = self.simulation.get_neighbors(boid)
-            candidates = self.simulation.grid.get_local_agents(boid)
+            candidates = self.simulation.grid.get_local_agents(boid.position)
 
             for candidate in candidates:
                 if candidate is boid:
@@ -331,7 +331,7 @@ class Renderer:
             f"Speed {boid.velocity.length():8.2f}",
             "",
             f"Neighbors:  {len(self.simulation.get_neighbors(boid))}",
-            f"Candidates: {len(self.simulation.grid.get_local_agents(boid))}",
+            f"Candidates: {len(self.simulation.grid.get_local_agents(boid.position))}",
             "",
             f"Color: {boid.color}",
             f"Speed range: {boid.min_speed} {boid.max_speed}",
