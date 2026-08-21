@@ -125,9 +125,6 @@ class Renderer:
         print("Initialising Renderer...")
         self.gamestate = gamestate.state
 
-        self.gamestate["focus"] = None
-        self.gamestate["show_debug"] = "fps_cam_perf"
-
         self.width = width
         self.height = height
         self.simulation = simulation
