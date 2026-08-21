@@ -82,6 +82,21 @@ class Simulation:
 
         return neighbors
 
+    def find_boid_at(self, target, _range=20):
+        """Finds the closest boid to target within range"""
+        closest = None
+        clo_dis_sqr = _range**2
+
+        for candidate in self.grid.iter_local_agents(target):
+            can_dis_sqr = (candidate.position.x - target.x) ** 2 + (
+                candidate.position.y - target.y
+            ) ** 2
+            if can_dis_sqr < clo_dis_sqr:
+                closest = candidate
+                clo_dis_sqr = can_dis_sqr
+
+        return closest
+
     def update(self, dt):
 
         self.perflog.start()
