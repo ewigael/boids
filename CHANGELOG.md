@@ -13,6 +13,7 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 ### Added
 
 - Zoom on mouse with mouse wheel
+- InputManager now exposes mouse inputs (pressed & held) and events
 
 ### Changed
 
