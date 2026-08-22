@@ -23,8 +23,9 @@ class Boid:
         direction=None,
         acceleration=None,
         name=None,
+        species="Boid",
     ):
-        self.species = "Boid"
+        self.species = species
         self.name = id(self) if name is None else name
         self.position = Vector2(x, y)
 
