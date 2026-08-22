@@ -25,6 +25,7 @@ class InputManager:
 
         self.quit = False
         self.resize = False
+        self.mouse_wheel = 0
 
     def update(self):
         # Clearing events state
@@ -43,6 +44,8 @@ class InputManager:
                     self._mouse_pressed.add(event.button)
                 case pygame.MOUSEBUTTONUP:
                     self._mouse_released.add(event.button)
+                case pygame.MOUSEWHEEL:
+                    self.mouse_wheel += event.y
                 case pygame.VIDEORESIZE:
                     self.resize = (event.w, event.h)
 
@@ -56,3 +59,9 @@ class InputManager:
 
     def pressed(self, key):
         return key in self._pressed
+
+    def mouse_held(self, key):
+        return self.mouse[key]
+
+    def mouse_pressed(self, key):
+        return key in self._mouse_pressed

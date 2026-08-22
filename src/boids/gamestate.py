@@ -28,11 +28,19 @@ class GameState:
     """Interprets inputs and update internal game state to be read by simulation and renderer"""
 
     def __init__(self):
-
         print("Initialising Game State...")
         self.key_bindings, self.state = self.build_key_binding(BINDINGS)
 
+        # General
+        self.state["quit"]
+
+        # Simulation
         self.state["boids_count"] = None
+
+        # Renderer
+        self.state["focus_on"] = None
+        self.state["focus"] = None
+        self.state["show_debug"] = "fps_cam_perf"
 
     def build_key_binding(self, ctrl_list):
         """Build the key_bindings and state dictionaries from ctrl_list
@@ -54,6 +62,8 @@ class GameState:
 
         # interpret events
         self.state["win_resize"] = inputs.resize
+        self.state["camera_zoom_on_mouse"] = inputs.mouse_wheel
+        self.state["mouse_pos"] = inputs.mouse_position
 
         # interpret bindings
         # Toggles
@@ -71,3 +81,7 @@ class GameState:
 
         # As the quit order can come from an event or keybinding it's updated last
         self.state["quit"] = inputs.quit or self.state["quit"]
+
+        # interpret mouse
+        if inputs.mouse_pressed(1):
+            self.state["focus_on"] = inputs.mouse_position
