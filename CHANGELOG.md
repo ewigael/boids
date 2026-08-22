@@ -8,7 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html),
 and this programmer does her best to follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
 
+
 ## Unreleased
+
+### Added
+
+### Changed
+
+### Removed
+
+### Fixed
+
+## [1.4.0]
 
 ### Added
 
@@ -26,10 +37,6 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 ### Changed
 
 - gamestate focus / show_debug inital states are now set in GameState.__init__() rather than Renderer
-
-### Removed
-
-### Fixed
 
 ## [1.3.0]
 
