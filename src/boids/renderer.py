@@ -470,11 +470,19 @@ class Renderer:
             i += 1
 
         state = {
-            "state": self.gamestate,
+            "state": {
+                k: (
+                    {"name": v.name, "species": v.species}
+                    if k == "focus" and v is not None
+                    else v
+                )
+                for k, v in self.gamestate.items()
+            },
             "world": (self.simulation.width, self.simulation.height),
             "boids": [
                 {
                     "name": boid.name,
+                    "species": boid.species,
                     "position": tuple(boid.position),
                     "velocity": tuple(boid.velocity),
                     "acceleration": tuple(boid.acceleration),

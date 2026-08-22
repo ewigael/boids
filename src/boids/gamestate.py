@@ -28,22 +28,28 @@ BINDINGS = [
 class GameState:
     """Interprets inputs and update internal game state to be read by simulation and renderer"""
 
-    def __init__(self, quiet):
+    def __init__(self, quiet, load_save=None):
         if not quiet:
             print("Initialising Game State...")
         self.key_bindings, self.state = self.build_key_binding(BINDINGS, quiet)
 
+        if load_save:
+            if not quiet:
+                print("> Loading from file")
+            for k, v in load_save["state"].items():
+                self.state[k] = v
+        else:
+            # Simulation
+            self.state["boids_count"] = None
+
+            # Renderer
+            self.state["focus_on"] = None
+            self.state["focus"] = None
+            self.state["show_debug"] = "fps_cam_perf"
+
         # General
         self.state["quit"] = False
         self.state["quiet"] = quiet
-
-        # Simulation
-        self.state["boids_count"] = None
-
-        # Renderer
-        self.state["focus_on"] = None
-        self.state["focus"] = None
-        self.state["show_debug"] = "fps_cam_perf"
 
     def build_key_binding(self, ctrl_list, quiet):
         """Build the key_bindings and state dictionaries from ctrl_list
@@ -51,7 +57,7 @@ class GameState:
         [(control name, key, "pressed"|"held", default value), ...]
         """
         if not quiet:
-            print("> Building Key Bindings...")
+            print("> Building Key Bindings")
         key_bindings = {"held": {}, "action": {}, "pressed": {}}
         state = {}
 

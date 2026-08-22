@@ -20,7 +20,8 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 - Added save state on key input => o
 - Boid class accepts velocity at init
 - Cli option:
-  - -q --quiet
+  - -q --quiet : Quiets output
+  - -l --load-save PATH : Loads save file
 
 ### Changed
 
