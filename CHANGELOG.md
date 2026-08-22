@@ -18,6 +18,7 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 - Added `Vector2.__iter__`, rendering `tuple(v)`, `*v`, `x, y = v` available
 - Added name to boid class
 - Added save state on key input => o
+- Boid class accepts velocity at init
 - Cli option:
   - -q --quiet
 

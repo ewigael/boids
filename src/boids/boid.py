@@ -16,26 +16,29 @@ class Boid:
         self,
         x=0,
         y=0,
-        color="#AA2FA4",
+        color=None,
+        color_species="#AA2FA4",
+        velocity=None,
         speed=100,
         direction=None,
         acceleration=None,
         name=None,
     ):
+        self.species = "Boid"
+        self.name = id(self) if name is None else name
         self.position = Vector2(x, y)
 
-        if direction is None:
-            angle = random.uniform(0, 2 * math.pi)
-            direction = Vector2(math.cos(angle), math.sin(angle))
-        if acceleration is None:
-            acceleration = Vector2(0, 0)
+        if velocity:
+            self.velocity = velocity
+        else:
+            if direction is None:
+                angle = random.uniform(0, 2 * math.pi)
+                direction = Vector2(math.cos(angle), math.sin(angle))
+            self.velocity = direction * speed
 
-        self.velocity = direction * speed
-        self.acceleration = acceleration
+        self.acceleration = acceleration if acceleration else Vector2(0, 0)
 
-        self.color = small_change_hex(color)
-
-        self.name = id(self) if name is None else name
+        self.color = color if color else small_change_hex(color_species)
 
     def is_in_range(self, other):
         """Tells if another boid is in range of this one.
