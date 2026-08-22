@@ -125,7 +125,8 @@ class Renderer:
         win_title="Akashic Renderer",
         background="#0C0C0E",
     ):
-        print("Initialising Renderer...")
+        if not gamestate.state["quiet"]:
+            print("Initialising Renderer...")
         self.gamestate = gamestate.state
 
         self.width = width
@@ -469,11 +470,19 @@ class Renderer:
             i += 1
 
         state = {
-            "state": self.gamestate,
+            "state": {
+                k: (
+                    {"name": v.name, "species": v.species}
+                    if k == "focus" and v is not None
+                    else v
+                )
+                for k, v in self.gamestate.items()
+            },
             "world": (self.simulation.width, self.simulation.height),
             "boids": [
                 {
                     "name": boid.name,
+                    "species": boid.species,
                     "position": tuple(boid.position),
                     "velocity": tuple(boid.velocity),
                     "acceleration": tuple(boid.acceleration),

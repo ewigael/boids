@@ -1,4 +1,12 @@
+import os
+
+# Quiets pygame prompt
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
+
+import click
 import pygame
+from pathlib import Path
+import json
 
 from . import print_metadata
 from .inputs import InputManager
@@ -20,17 +28,41 @@ WORLD_HEIGHT = 1080
 BOID_COUNT = 200
 
 
-def main():
-    print_metadata()
+@click.command(context_settings={"help_option_names": ["-h", "--help"]})
+@click.option(
+    "-q",
+    "--quiet",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Quiet the console output",
+)
+@click.option(
+    "-l",
+    "--load-save",
+    type=click.Path(exists=True, path_type=Path),
+    help="Load a .boids save file, loads game state and simulation state",
+)
+def main(quiet, load_save):
+    if not quiet:
+        print_metadata(pygame)
 
     perflog = PerformanceLogger("main")
 
+    if load_save:
+        if not quiet:
+            print(f"Loading save file: {load_save}")
+        with open(load_save, "r") as save_file:
+            load_save = json.load(save_file)
+
     pygame.init()
 
-    inputs = InputManager()
-    gamestate = GameState()
+    gamestate = GameState(quiet, load_save)
+    inputs = InputManager(gamestate)
 
-    simulation = Simulation(gamestate, WORLD_WIDTH, WORLD_HEIGHT, BOID_COUNT)
+    simulation = Simulation(
+        gamestate, WORLD_WIDTH, WORLD_HEIGHT, BOID_COUNT, load_save=load_save
+    )
     renderer = Renderer(
         gamestate, simulation, SCREEN_WIDTH, SCREEN_HEIGHT, WIN_TITLE, BACKGROUND
     )
