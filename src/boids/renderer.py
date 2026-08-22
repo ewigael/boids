@@ -1,9 +1,12 @@
 import pygame
+from pathlib import Path
+import json
 
 from .vector2 import Vector2
 from .perflog import PerformanceLogger
 from .colors import value_to_color_gradient_linear, value_to_color_gradient_log
 
+SAVE_STATE_FILE = Path("./saves/save.boids")
 DEBUG_CYCLE = [None, "fps", "fps_cam", "fps_cam_perf"]
 
 
@@ -75,6 +78,14 @@ class Camera:
     def zoom_by(self, factor):
         self.set_zoom(self.zoom * factor)
 
+    def zoom_at(self, target, factor):
+        before = self.screen_to_world(target)
+        self.zoom_by(factor)
+        after = self.screen_to_world(target)
+
+        self.position += before - after
+        self.clamp_position()
+
     def focus_on(self, boid):
         self.position.x = boid.position.x
         self.position.y = boid.position.y
@@ -92,6 +103,17 @@ class Camera:
             relative.y * self.zoom + self.screen_height / 2,
         )
 
+    def screen_to_world(self, screen_position):
+        if type(screen_position) == Vector2:
+            spos_x, spos_y = screen_position.x, screen_position.y
+        elif type(screen_position) == tuple:
+            spos_x, spos_y = screen_position
+
+        return Vector2(
+            (spos_x - self.screen_width / 2) / self.zoom + self.position.x,
+            (spos_y - self.screen_height / 2) / self.zoom + self.position.y,
+        )
+
 
 class Renderer:
     def __init__(
@@ -103,11 +125,9 @@ class Renderer:
         win_title="Akashic Renderer",
         background="#0C0C0E",
     ):
-        print("Initialising Renderer...")
+        if not gamestate.state["quiet"]:
+            print("Initialising Renderer...")
         self.gamestate = gamestate.state
-
-        self.gamestate["focus"] = None
-        self.gamestate["show_debug"] = "fps_cam_perf"
 
         self.width = width
         self.height = height
@@ -210,7 +230,7 @@ class Renderer:
         # Boid neighbors
         if focused:
             neighbors = self.simulation.get_neighbors(boid)
-            candidates = self.simulation.grid.get_local_agents(boid)
+            candidates = self.simulation.grid.get_local_agents(boid.position)
 
             for candidate in candidates:
                 if candidate is boid:
@@ -308,14 +328,14 @@ class Renderer:
 
     def draw_focused_data(self, boid):
         lines = [
-            f"Boid {id(boid)}",
+            f"Boid #{boid.name}",
             "",
             f"X {boid.position.x:8.2f}",
             f"Y {boid.position.y:8.2f}",
             f"Speed {boid.velocity.length():8.2f}",
             "",
             f"Neighbors:  {len(self.simulation.get_neighbors(boid))}",
-            f"Candidates: {len(self.simulation.grid.get_local_agents(boid))}",
+            f"Candidates: {len(self.simulation.grid.get_local_agents(boid.position))}",
             "",
             f"Color: {boid.color}",
             f"Speed range: {boid.min_speed} {boid.max_speed}",
@@ -366,6 +386,13 @@ class Renderer:
         if self.gamestate["camera_zoom_down"]:
             self.camera.zoom_by(1 - 2 * dt)
 
+        # Zooming on mouse
+        if self.gamestate["camera_zoom_on_mouse"]:
+            self.camera.zoom_at(
+                self.gamestate["mouse_pos"],
+                1 + 3 * dt * self.gamestate["camera_zoom_on_mouse"],
+            )
+
         # FOCUS ####
         # Focusing
         if self.gamestate["boids_focus_next"]:
@@ -399,10 +426,21 @@ class Renderer:
                 (DEBUG_CYCLE.index(self.gamestate["show_debug"]) + 1) % len(DEBUG_CYCLE)
             ]
 
+        # SAVE STATE ####
+        if self.gamestate["save_state"]:
+            self.gamestate["save_state"] = None
+            self.save_state()
+
     def draw(self, fps):
         """Read game state to know what and how to draw it"""
 
         self.screen.fill(self.background)
+
+        if self.gamestate["focus_on"]:
+            self.gamestate["focus"] = self.simulation.find_boid_at(
+                self.camera.screen_to_world(self.gamestate["focus_on"])
+            )
+            self.gamestate["focus_on"] = None
 
         if self.gamestate["focus"]:
             self.camera.focus_on(self.gamestate["focus"])
@@ -420,3 +458,39 @@ class Renderer:
             self.draw_state()
 
         pygame.display.flip()
+
+    def save_state(self, dest=SAVE_STATE_FILE, force_write=False):
+        or_stem = dest.stem
+        dest.parent.mkdir(parents=True, exist_ok=True)
+
+        i = 1
+        while force_write or dest.exists():
+            file_name = f"{or_stem}{i}{dest.suffix}"
+            dest = dest.parent / file_name
+            i += 1
+
+        state = {
+            "state": {
+                k: (
+                    {"name": v.name, "species": v.species}
+                    if k == "focus" and v is not None
+                    else v
+                )
+                for k, v in self.gamestate.items()
+            },
+            "world": (self.simulation.width, self.simulation.height),
+            "boids": [
+                {
+                    "name": boid.name,
+                    "species": boid.species,
+                    "position": tuple(boid.position),
+                    "velocity": tuple(boid.velocity),
+                    "acceleration": tuple(boid.acceleration),
+                    "color": boid.color,
+                }
+                for boid in self.simulation.boids
+            ],
+        }
+
+        with open(dest, "w") as file:
+            json.dump(state, file, indent=4)

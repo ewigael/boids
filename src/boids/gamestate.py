@@ -21,25 +21,43 @@ BINDINGS = [
     ("camera_move_down", "K_s", "held", False),
     ("camera_zoom_up", "K_UP", "held", False),
     ("camera_zoom_down", "K_DOWN", "held", False),
+    ("save_state", "K_o", "pressed", False),
 ]
 
 
 class GameState:
     """Interprets inputs and update internal game state to be read by simulation and renderer"""
 
-    def __init__(self):
+    def __init__(self, quiet, load_save=None):
+        if not quiet:
+            print("Initialising Game State...")
+        self.key_bindings, self.state = self.build_key_binding(BINDINGS, quiet)
 
-        print("Initialising Game State...")
-        self.key_bindings, self.state = self.build_key_binding(BINDINGS)
+        if load_save:
+            if not quiet:
+                print("> Loading from file")
+            for k, v in load_save["state"].items():
+                self.state[k] = v
+        else:
+            # Simulation
+            self.state["boids_count"] = None
 
-        self.state["boids_count"] = None
+            # Renderer
+            self.state["focus_on"] = None
+            self.state["focus"] = None
+            self.state["show_debug"] = "fps_cam_perf"
 
-    def build_key_binding(self, ctrl_list):
+        # General
+        self.state["quit"] = False
+        self.state["quiet"] = quiet
+
+    def build_key_binding(self, ctrl_list, quiet):
         """Build the key_bindings and state dictionaries from ctrl_list
         ctrl_list must be formatted as:
         [(control name, key, "pressed"|"held", default value), ...]
         """
-        print("Building Key Bindings...")
+        if not quiet:
+            print("> Building Key Bindings")
         key_bindings = {"held": {}, "action": {}, "pressed": {}}
         state = {}
 
@@ -54,6 +72,8 @@ class GameState:
 
         # interpret events
         self.state["win_resize"] = inputs.resize
+        self.state["camera_zoom_on_mouse"] = inputs.mouse_wheel
+        self.state["mouse_pos"] = inputs.mouse_position
 
         # interpret bindings
         # Toggles
@@ -71,3 +91,7 @@ class GameState:
 
         # As the quit order can come from an event or keybinding it's updated last
         self.state["quit"] = inputs.quit or self.state["quit"]
+
+        # interpret mouse
+        if inputs.mouse_pressed(1):
+            self.state["focus_on"] = inputs.mouse_position

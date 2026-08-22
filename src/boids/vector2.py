@@ -42,6 +42,10 @@ class Vector2:
     def __neg__(self):
         return Vector2(-self.x, -self.y)
 
+    def __iter__(self):
+        yield self.x
+        yield self.y
+
     def dot(self, other):
         return self.x * other.x + self.y * other.y
 

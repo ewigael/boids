@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html),
 and this programmer does her best to follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
 
+
 ## Unreleased
 
 ### Added
@@ -17,6 +18,25 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 ### Removed
 
 ### Fixed
+
+## [1.4.0]
+
+### Added
+
+- Zoom on mouse with mouse wheel
+- InputManager now exposes mouse inputs (pressed & held) and events
+- Relevent states added to GameState
+- Added `Vector2.__iter__`, rendering `tuple(v)`, `*v`, `x, y = v` available
+- Added name to boid class
+- Added save state on key input => o
+- Boid class accepts velocity at init
+- Cli option:
+  - -q --quiet : Quiets output
+  - -l --load-save PATH : Loads save file
+
+### Changed
+
+- gamestate focus / show_debug inital states are now set in GameState.__init__() rather than Renderer
 
 ## [1.3.0]
 

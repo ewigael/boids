@@ -6,6 +6,7 @@ import pygame
 from .boid import Boid
 from .behaviors import flock
 from .perflog import PerformanceLogger
+from .vector2 import Vector2
 
 
 class SpatialGrid:
@@ -14,7 +15,8 @@ class SpatialGrid:
         self.cells = {}
 
     def get_cell(self, position):
-        return (position.x // self.cell_size, position.y // self.cell_size)
+        x, y = position
+        return (x // self.cell_size, y // self.cell_size)
 
     def add(self, boid):
         cell = self.get_cell(boid.position)
@@ -27,10 +29,10 @@ class SpatialGrid:
         for b in boids:
             self.add(b)
 
-    def get_local_agents(self, boid, search_range=1):
+    def get_local_agents(self, target, search_range=1):
         """Return a list of all agents in neighboring cells, searching a square of size search_range * 2 + 1"""
         agents = []
-        cell_x, cell_y = self.get_cell(boid.position)
+        cell_x, cell_y = self.get_cell(target)
 
         for dx in range(-search_range, search_range + 1):
             for dy in range(-search_range, search_range + 1):
@@ -40,9 +42,9 @@ class SpatialGrid:
 
         return agents
 
-    def iter_local_agents(self, boid, search_range=1):
+    def iter_local_agents(self, target, search_range=1):
         """Iterative version of get_local_agents"""
-        cell_x, cell_y = self.get_cell(boid.position)
+        cell_x, cell_y = self.get_cell(target)
 
         for dx in range(-search_range, search_range + 1):
             for dy in range(-search_range, search_range + 1):
@@ -53,17 +55,50 @@ class SpatialGrid:
 
 class Simulation:
 
-    def __init__(self, game_state, width, height, boids_count):
-        print("Initialising Simulation...")
+    def __init__(self, game_state, width, height, boids_count, load_save=None):
+        if not game_state.state["quiet"]:
+            print("Initialising Simulation...")
         self.game_state = game_state
-        self.width = width
-        self.height = height
 
-        self.boids = [
-            Boid(randint(0, width - 1), randint(0, height - 1))
-            for _ in range(0, boids_count)
-        ]
-        self.game_state.state["boids_count"] = boids_count
+        if load_save:
+            if not game_state.state["quiet"]:
+                print("> Loading from file")
+
+                # loading entities
+                self.boids = []
+                for boid in load_save["boids"]:
+                    boid_o = Boid(
+                        name=boid["name"],
+                        species=boid["species"],
+                        color=boid["color"],
+                        x=boid["position"][0],
+                        y=boid["position"][1],
+                        velocity=Vector2(boid["velocity"][0], boid["velocity"][1]),
+                        acceleration=Vector2(
+                            boid["acceleration"][0], boid["acceleration"][1]
+                        ),
+                    )
+                    self.boids.append(boid_o)
+                    if isinstance(game_state.state["focus"], dict):
+                        if (
+                            boid["name"] == game_state.state["focus"]["name"]
+                            and boid["species"] == game_state.state["focus"]["species"]
+                        ):
+                            game_state.state["focus"] = boid_o
+
+                self.width = int(load_save["world"][0])
+                self.height = int(load_save["world"][1])
+
+        else:
+            self.width = width
+            self.height = height
+
+            self.boids = [
+                Boid(name=str(i + 1), x=randint(0, width - 1), y=randint(0, height - 1))
+                for i in range(0, boids_count)
+            ]
+
+            self.game_state.state["boids_count"] = boids_count
 
         self.grid = SpatialGrid(60)
         self.grid.rebuild(self.boids)
@@ -73,13 +108,28 @@ class Simulation:
     def get_neighbors(self, boid):
         neighbors = []
 
-        for other in self.grid.iter_local_agents(boid):
+        for other in self.grid.iter_local_agents(boid.position):
             if boid is other:
                 continue
             elif boid.is_in_range(other):
                 neighbors.append(other)
 
         return neighbors
+
+    def find_boid_at(self, target, _range=20):
+        """Finds the closest boid to target within range"""
+        closest = None
+        clo_dis_sqr = _range**2
+
+        for candidate in self.grid.iter_local_agents(target):
+            can_dis_sqr = (candidate.position.x - target.x) ** 2 + (
+                candidate.position.y - target.y
+            ) ** 2
+            if can_dis_sqr < clo_dis_sqr:
+                closest = candidate
+                clo_dis_sqr = can_dis_sqr
+
+        return closest
 
     def update(self, dt):
 

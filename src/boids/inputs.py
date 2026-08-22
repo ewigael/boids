@@ -7,8 +7,9 @@ import json
 class InputManager:
     """Stores events in attributes, as well as keys and mouse"""
 
-    def __init__(self):
-        print("Initialising Input Manager")
+    def __init__(self, game_state):
+        if not game_state.state["quiet"]:
+            print("Initialising Input Manager...")
         self._pressed = set()
         self._released = set()
         self._mouse_pressed = set()
@@ -25,6 +26,7 @@ class InputManager:
 
         self.quit = False
         self.resize = False
+        self.mouse_wheel = 0
 
     def update(self):
         # Clearing events state
@@ -43,6 +45,8 @@ class InputManager:
                     self._mouse_pressed.add(event.button)
                 case pygame.MOUSEBUTTONUP:
                     self._mouse_released.add(event.button)
+                case pygame.MOUSEWHEEL:
+                    self.mouse_wheel += event.y
                 case pygame.VIDEORESIZE:
                     self.resize = (event.w, event.h)
 
@@ -56,3 +60,9 @@ class InputManager:
 
     def pressed(self, key):
         return key in self._pressed
+
+    def mouse_held(self, key):
+        return self.mouse[key]
+
+    def mouse_pressed(self, key):
+        return key in self._mouse_pressed
