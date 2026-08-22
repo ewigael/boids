@@ -2,7 +2,9 @@
 
 A Boids simulation implementation in Python using pygame-ce for gui
 
-[See Changelog](CHANGELOG.md)
+[preview](docs/preview.gif)
+
+[See Changelog](docs/CHANGELOG.md)
 
 ## Installation
 
