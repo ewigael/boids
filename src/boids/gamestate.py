@@ -21,6 +21,7 @@ BINDINGS = [
     ("camera_move_down", "K_s", "held", False),
     ("camera_zoom_up", "K_UP", "held", False),
     ("camera_zoom_down", "K_DOWN", "held", False),
+    ("save_state", "K_o", "pressed", False),
 ]
 
 
