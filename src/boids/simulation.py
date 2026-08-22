@@ -154,7 +154,7 @@ class Simulation:
 
             if boid == self.game_state.state["focus"]:
                 if self.game_state.state["focus_boid_go_direction"]:
-                    force += self.game_state.state[
+                    force = self.game_state.state[
                         "focus_boid_go_direction"
                     ] - boid.velocity * (dt / 2)
                 if self.game_state.state["focus_boid_go_faster"]:
