@@ -13,7 +13,8 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 
 ### Added
 
-- Can now control focused boid with wasd
+- Control focused boid with wasd
+  - left/right overrides flocking
 
 ### Changed
 
