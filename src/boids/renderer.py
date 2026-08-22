@@ -125,7 +125,8 @@ class Renderer:
         win_title="Akashic Renderer",
         background="#0C0C0E",
     ):
-        print("Initialising Renderer...")
+        if not gamestate.state["quiet"]:
+            print("Initialising Renderer...")
         self.gamestate = gamestate.state
 
         self.width = width

@@ -1,3 +1,9 @@
+import os
+
+# Quiets pygame prompt
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
+
+import click
 import pygame
 
 from . import print_metadata
@@ -20,15 +26,25 @@ WORLD_HEIGHT = 1080
 BOID_COUNT = 200
 
 
-def main():
-    print_metadata()
+@click.command(context_settings={"help_option_names": ["-h", "--help"]})
+@click.option(
+    "-q",
+    "--quiet",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Quiet the console output",
+)
+def main(quiet):
+    if not quiet:
+        print_metadata(pygame)
 
     perflog = PerformanceLogger("main")
 
     pygame.init()
 
-    inputs = InputManager()
-    gamestate = GameState()
+    gamestate = GameState(quiet)
+    inputs = InputManager(gamestate)
 
     simulation = Simulation(gamestate, WORLD_WIDTH, WORLD_HEIGHT, BOID_COUNT)
     renderer = Renderer(

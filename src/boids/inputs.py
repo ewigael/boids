@@ -7,8 +7,9 @@ import json
 class InputManager:
     """Stores events in attributes, as well as keys and mouse"""
 
-    def __init__(self):
-        print("Initialising Input Manager")
+    def __init__(self, game_state):
+        if not game_state.state["quiet"]:
+            print("Initialising Input Manager...")
         self._pressed = set()
         self._released = set()
         self._mouse_pressed = set()

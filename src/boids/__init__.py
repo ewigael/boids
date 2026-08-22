@@ -10,12 +10,15 @@ __description__ = _metadata.get("Summary", "")
 __urls__ = dict(item.split(", ") for item in _metadata.get_all("Project-URL"))
 
 
-def print_metadata():
+def print_metadata(pygame=None):
     print(
         f"{__project_name__} {__version__}\n"
         f"{__description__}\n"
         f"Authored by: {__authors__}\n"
         f"Repository: {__urls__["Repository"]}\n"
         f"Changelog: {__urls__["Changelog"]}\n"
-        f"Issues: {__urls__["Issues"]}\n"
+        f"Issues: {__urls__["Issues"]}",
     )
+    if pygame:
+        print(f"pygame-ce {pygame.ver}")
+    print()

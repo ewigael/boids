@@ -55,7 +55,8 @@ class SpatialGrid:
 class Simulation:
 
     def __init__(self, game_state, width, height, boids_count):
-        print("Initialising Simulation...")
+        if not game_state.state["quiet"]:
+            print("Initialising Simulation...")
         self.game_state = game_state
         self.width = width
         self.height = height
