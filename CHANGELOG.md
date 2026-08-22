@@ -16,6 +16,7 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 - InputManager now exposes mouse inputs (pressed & held) and events
 - Relevent states added to GameState
 - Added `Vector2.__iter__`, rendering `tuple(v)`, `*v`, `x, y = v` available
+- Added name to boid class
 
 ### Changed
 
