@@ -61,8 +61,8 @@ class Simulation:
         self.height = height
 
         self.boids = [
-            Boid(randint(0, width - 1), randint(0, height - 1))
-            for _ in range(0, boids_count)
+            Boid(name=str(i + 1), x=randint(0, width - 1), y=randint(0, height - 1))
+            for i in range(0, boids_count)
         ]
         self.game_state.state["boids_count"] = boids_count
 

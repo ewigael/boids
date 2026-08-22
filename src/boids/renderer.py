@@ -1,9 +1,12 @@
 import pygame
+from pathlib import Path
+import json
 
 from .vector2 import Vector2
 from .perflog import PerformanceLogger
 from .colors import value_to_color_gradient_linear, value_to_color_gradient_log
 
+SAVE_STATE_FILE = Path("./saves/save.boids")
 DEBUG_CYCLE = [None, "fps", "fps_cam", "fps_cam_perf"]
 
 
@@ -422,6 +425,11 @@ class Renderer:
                 (DEBUG_CYCLE.index(self.gamestate["show_debug"]) + 1) % len(DEBUG_CYCLE)
             ]
 
+        # SAVE STATE ####
+        if self.gamestate["save_state"]:
+            self.gamestate["save_state"] = None
+            self.save_state()
+
     def draw(self, fps):
         """Read game state to know what and how to draw it"""
 
@@ -449,3 +457,31 @@ class Renderer:
             self.draw_state()
 
         pygame.display.flip()
+
+    def save_state(self, dest=SAVE_STATE_FILE, force_write=False):
+        or_stem = dest.stem
+        dest.parent.mkdir(parents=True, exist_ok=True)
+
+        i = 1
+        while force_write or dest.exists():
+            file_name = f"{or_stem}{i}{dest.suffix}"
+            dest = dest.parent / file_name
+            i += 1
+
+        state = {
+            "state": self.gamestate,
+            "world": (self.simulation.width, self.simulation.height),
+            "boids": [
+                {
+                    "name": boid.name,
+                    "position": tuple(boid.position),
+                    "velocity": tuple(boid.velocity),
+                    "acceleration": tuple(boid.acceleration),
+                    "color": boid.color,
+                }
+                for boid in self.simulation.boids
+            ],
+        }
+
+        with open(dest, "w") as file:
+            json.dump(state, file, indent=4)
