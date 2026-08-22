@@ -6,7 +6,8 @@ authors = [
     { name = "Akasha Mouginot", email = "akasha.mouginot@protonmail.com" }
 ]
 requires-python = ">=3.14"
-dependencies = ["pygame-ce>=2.5.8"]
+dependencies = ["pygame-ce>=2.5.8",
+                "click>=8.4"]
 
 [project.urls]
 Repository = "https://github.com/ewigael/boids"
