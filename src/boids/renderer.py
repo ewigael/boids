@@ -324,7 +324,7 @@ class Renderer:
 
     def draw_focused_data(self, boid):
         lines = [
-            f"Boid {id(boid)}",
+            f"Boid #{boid.name}",
             "",
             f"X {boid.position.x:8.2f}",
             f"Y {boid.position.y:8.2f}",

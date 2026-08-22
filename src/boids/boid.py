@@ -20,6 +20,7 @@ class Boid:
         speed=100,
         direction=None,
         acceleration=None,
+        name=None,
     ):
         self.position = Vector2(x, y)
 
@@ -33,6 +34,8 @@ class Boid:
         self.acceleration = acceleration
 
         self.color = small_change_hex(color)
+
+        self.name = id(self) if name is None else name
 
     def is_in_range(self, other):
         """Tells if another boid is in range of this one.
