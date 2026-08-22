@@ -13,6 +13,9 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 
 ### Added
 
+- Control focused boid with wasd
+  - left/right overrides flocking
+
 ### Changed
 
 ### Removed

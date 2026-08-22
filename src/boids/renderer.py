@@ -406,6 +406,22 @@ class Renderer:
 
             self.camera.set_zoom(3)
 
+        # Boid control
+        if self.gamestate["focus"]:
+            focused = self.gamestate["focus"]
+            vel = focused.velocity
+            perp = Vector2(vel.y, -vel.x).normalize()
+            if self.gamestate["focus_boid_go_left"]:
+                self.gamestate["focus_boid_go_direction"] = perp * vel.length()
+            if self.gamestate["focus_boid_go_right"]:
+                self.gamestate["focus_boid_go_direction"] = -perp * vel.length()
+
+            if (
+                not self.gamestate["focus_boid_go_left"]
+                and not self.gamestate["focus_boid_go_right"]
+            ):
+                self.gamestate["focus_boid_go_direction"] = None
+
         # Clearing focus
         if self.gamestate["boids_clear_focus"]:
             self.gamestate["focus"] = None
@@ -474,7 +490,11 @@ class Renderer:
                 k: (
                     {"name": v.name, "species": v.species}
                     if k == "focus" and v is not None
-                    else v
+                    else (
+                        tuple(v)
+                        if k == "focus_boid_go_direction" and v is not None
+                        else v
+                    )
                 )
                 for k, v in self.gamestate.items()
             },

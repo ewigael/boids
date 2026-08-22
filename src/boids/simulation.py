@@ -151,6 +151,16 @@ class Simulation:
 
         for boid, neighbors in zip(self.boids, neighbor_list):
             force = flock(boid, neighbors)
+
+            if boid == self.game_state.state["focus"]:
+                if self.game_state.state["focus_boid_go_direction"]:
+                    force = self.game_state.state[
+                        "focus_boid_go_direction"
+                    ] - boid.velocity * (dt / 2)
+                if self.game_state.state["focus_boid_go_faster"]:
+                    force += boid.velocity * 1.1
+                if self.game_state.state["focus_boid_go_slower"]:
+                    force -= boid.velocity * 1.1
             boid.apply_force(force)
 
         self.perflog.add("boids compute")
