@@ -22,6 +22,11 @@ BINDINGS = [
     ("camera_zoom_up", "K_UP", "held", False),
     ("camera_zoom_down", "K_DOWN", "held", False),
     ("save_state", "K_o", "pressed", False),
+    ("save_state", "K_o", "pressed", False),
+    ("focus_boid_go_left", "K_a", "held", False),
+    ("focus_boid_go_right", "K_d", "held", False),
+    ("focus_boid_go_faster", "K_w", "held", False),
+    ("focus_boid_go_slower", "K_s", "held", False),
 ]
 
 
@@ -50,6 +55,7 @@ class GameState:
         # General
         self.state["quit"] = False
         self.state["quiet"] = quiet
+        self.state["focus_boid_go_direction"] = None
 
     def build_key_binding(self, ctrl_list, quiet):
         """Build the key_bindings and state dictionaries from ctrl_list
