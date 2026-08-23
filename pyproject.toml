@@ -12,7 +12,7 @@ dependencies = ["pygame-ce>=2.5.8",
 [project.urls]
 Repository = "https://github.com/ewigael/boids"
 Issues = "https://github.com/ewigael/boids/issues"
-Changelog = "https://github.com/ewigael/boids/blob/main/CHANGELOG.md"
+Changelog = "https://github.com/ewigael/boids/blob/main/docs/CHANGELOG.md"
 Readme = "https://github.com/ewigael/boids/blob/main/README.md"
 
 [project.scripts]
