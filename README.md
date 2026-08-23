@@ -3,10 +3,11 @@
 A Boids simulation implementation in Python using pygame-ce for gui
 
 ![preview](docs/preview.gif)
+>*(i have no idea why the gif turned out lagging, I swear the simulation runs fine)*
 
 ## Quick Start
 
-### Download the repository and install the package with pip:
+Download the repository and install the package with pip:
 
 ```bash
 # clone repository
@@ -17,7 +18,7 @@ cd boids
 pip install .
 ```
 
-### Launch the executable:
+Launch the executable:
 
 ```bash
 boids
