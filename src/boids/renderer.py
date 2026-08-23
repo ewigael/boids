@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 
 from .vector2 import Vector2
-from .perflog import PerformanceLogger
+from perflogger import PerfLogger
 from .colors import value_to_color_gradient_linear, value_to_color_gradient_log
 
 SAVE_STATE_FILE = Path("./saves/save.boids")
@@ -282,7 +282,7 @@ class Renderer:
             lines.append((f"Zoom: {camera.zoom:.2f}x", "white"))
 
         if "perf" in debug_mode:
-            for logger in PerformanceLogger.loggers:
+            for logger in PerfLogger.get_all_instances():
                 lines.append((f"Performance Logger #{logger.name}", "#F5F5F5"))
 
                 for name, delta, true in logger.get_averages():

@@ -1,4 +1,5 @@
 import os
+import json
 
 # Quiets pygame prompt
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
@@ -6,14 +7,13 @@ os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 import click
 import pygame
 from pathlib import Path
-import json
+from perflogger import PerfLogger
 
 from . import print_metadata
 from .inputs import InputManager
 from .gamestate import GameState
 from .simulation import Simulation
 from .renderer import Renderer
-from .perflog import PerformanceLogger
 
 WIN_TITLE = "Boids by Akasha"
 
@@ -47,7 +47,7 @@ def main(quiet, load_save):
     if not quiet:
         print_metadata(pygame)
 
-    perflog = PerformanceLogger("main")
+    perflog = PerfLogger("main")
 
     if load_save:
         if not quiet:
