@@ -19,6 +19,8 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 
 ### Changed
 
+- Moved this file to docs/
+
 ### Removed
 
 ### Fixed

@@ -4,11 +4,9 @@ A Boids simulation implementation in Python using pygame-ce for gui
 
 ![preview](docs/preview.gif)
 
-[See Changelog](docs/CHANGELOG.md)
+## Quick Start
 
-## Installation
-
-Download the repository and install the package with pip:
+### Download the repository and install the package with pip:
 
 ```bash
 # clone repository
@@ -18,6 +16,14 @@ cd boids
 # install package
 pip install .
 ```
+
+### Launch the executable:
+
+```bash
+boids
+```
+
+Use ```boids -h``` to see a full list of options
 
 ## About
 
@@ -33,16 +39,6 @@ New behaviors appearing spontaneously from seemingly simple or unrelated rules i
 
 Boids algorithms are used to simulate bird flocks, schools of fish, [waddles of penguins](https://en.wiktionary.org/wiki/Appendix:English_collective_nouns#The_main_list)... But also enemy AI in video games or even drones
 
-## Usage
+## Change logs
 
-Installing the package exposes the ```boids``` executable
-
-### Key Bindings
-
-Coming soon
-
-### Cli Options
-
-Coming soon
-
-Use ```boids -h``` for a full list of cli options
+Find unreleased features and version updates in the [Changelog](docs/CHANGELOG.md)
