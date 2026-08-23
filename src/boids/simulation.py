@@ -5,7 +5,7 @@ import pygame
 
 from .boid import Boid
 from .behaviors import flock
-from .perflog import PerformanceLogger
+from perflogger import PerfLogger
 from .vector2 import Vector2
 
 
@@ -103,7 +103,7 @@ class Simulation:
         self.grid = SpatialGrid(60)
         self.grid.rebuild(self.boids)
 
-        self.perflog = PerformanceLogger("Simulation", avgs_step=0.5)
+        self.perflog = PerfLogger("Simulation", avgs_step=0.5)
 
     def get_neighbors(self, boid):
         """Return a list of neighboring boids within passed boid's sensor range"""
