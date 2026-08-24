@@ -13,7 +13,11 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 
 ### Added
 
+- `-r` `--record-data-to-file` `[PATH]` to send performance logging to a file! terribly useful for developping.
+
 ### Changed
+
+- Bump akashic-perflogger v0.1+ -> v0.2+
 
 ### Removed
 
