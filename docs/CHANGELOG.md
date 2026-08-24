@@ -13,6 +13,27 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 
 ### Added
 
+### Changed
+
+### Removed
+
+### Fixed
+
+## [1.5.1]
+
+### Added
+
+- Simulation docstrings
+
+### Changed
+
+- Now uses the [perflogger package](https://github.com/ewigael/perflogger) for performance tracking
+
+
+## Unreleased
+
+### Added
+
 - Simulation docstrings
 
 ### Changed
