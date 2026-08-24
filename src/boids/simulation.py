@@ -5,7 +5,7 @@ import pygame
 
 from .boid import Boid
 from .behaviors import flock
-from .perflog import PerformanceLogger
+from perflogger import PerfLogger
 from .vector2 import Vector2
 
 
@@ -103,9 +103,10 @@ class Simulation:
         self.grid = SpatialGrid(60)
         self.grid.rebuild(self.boids)
 
-        self.perflog = PerformanceLogger("Simulation", avgs_step=0.5)
+        self.perflog = PerfLogger("Simulation", avgs_step=0.5)
 
     def get_neighbors(self, boid):
+        """Return a list of neighboring boids within passed boid's sensor range"""
         neighbors = []
 
         for other in self.grid.iter_local_agents(boid.position):
@@ -117,7 +118,7 @@ class Simulation:
         return neighbors
 
     def find_boid_at(self, target, _range=20):
-        """Finds the closest boid to target within range"""
+        """Find the closest boid to target within range"""
         closest = None
         clo_dis_sqr = _range**2
 
@@ -132,6 +133,10 @@ class Simulation:
         return closest
 
     def update(self, dt):
+        """Rebuild the spatial grid, list all neighbors
+        and run through all boids to apply their behavior
+        before updating all boids
+        """
 
         self.perflog.start()
 
@@ -139,14 +144,12 @@ class Simulation:
             return
 
         self.grid.rebuild(self.boids)
-
         self.perflog.add("grid rebuild")
 
         neighbor_list = []
 
         for boid in self.boids:
             neighbor_list.append(self.get_neighbors(boid))
-
         self.perflog.add("update neighbors listing")
 
         for boid, neighbors in zip(self.boids, neighbor_list):
@@ -162,16 +165,13 @@ class Simulation:
                 if self.game_state.state["focus_boid_go_slower"]:
                     force -= boid.velocity * 1.1
             boid.apply_force(force)
-
         self.perflog.add("boids compute")
 
         for boid in self.boids:
             boid.update(dt)
-
         self.perflog.add("boids update")
 
         self.wrap_boids()
-
         self.perflog.add("boids wrap")
 
     def wrap_boids(self):
