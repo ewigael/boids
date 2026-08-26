@@ -5,6 +5,8 @@ import json
 from .vector2 import Vector2
 from perflogger import PerfLogger
 from .colors import value_to_color_gradient_linear, value_to_color_gradient_log
+from .boid import Boid
+from random import randint
 
 SAVE_STATE_FILE = Path("./saves/save.boids")
 DEBUG_CYCLE = [None, "fps", "fps_cam", "fps_cam_perf"]
@@ -402,7 +404,9 @@ class Renderer:
                     % len(self.simulation.boids)
                 ]
             else:
-                self.gamestate["focus"] = self.simulation.boids[0]
+                self.gamestate["focus"] = (
+                    self.simulation.boids[0] if len(self.simulation.boids) else None
+                )
 
             self.camera.set_zoom(3)
 
@@ -446,6 +450,24 @@ class Renderer:
         if self.gamestate["save_state"]:
             self.gamestate["save_state"] = None
             self.save_state()
+
+        # SPAWN ######
+        # TODO: move this to be handled by the simulation?
+        if self.gamestate["boids_add"]:
+            boidname = str(len(self.simulation.boids) + 2)
+            self.simulation.boids.append(
+                Boid(
+                    name=boidname,
+                    x=randint(0, self.simulation.width - 1),
+                    y=randint(0, self.simulation.height - 1),
+                )
+            )
+            self.gamestate["boids_count"] += 1
+        if self.gamestate["boids_rem"]:
+            if self.gamestate["boids_count"] > 0:
+                if self.gamestate["focus"] == self.simulation.boids.pop():
+                    self.gamestate["focus"] = None
+                self.gamestate["boids_count"] -= 1
 
     def draw(self, fps):
         """Read game state to know what and how to draw it"""
