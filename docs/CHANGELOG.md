@@ -13,6 +13,16 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 
 ### Added
 
+### Changed
+
+### Removed
+
+### Fixed
+
+## [1.6.0]
+
+### Added
+
 - `-r` `--record-data-to-file` `[PATH]` to send performance logging to a file! terribly useful for developping.
 - Use n/m to spawn/despawn boids at will!
 - Added boundary avoidance behavior
