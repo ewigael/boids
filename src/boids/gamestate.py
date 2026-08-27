@@ -15,6 +15,8 @@ BINDINGS = [
     ("boids_focus_next", "K_f", "action", False),
     ("boids_clear_focus", "K_ESCAPE", "held", False),
     ("boids_show_sensor", "K_z", "held", False),
+    ("boids_add", "K_n", "action", False),
+    ("boids_rem", "K_m", "action", False),
     ("camera_move_left", "K_a", "held", False),
     ("camera_move_up", "K_w", "held", False),
     ("camera_move_right", "K_d", "held", False),
