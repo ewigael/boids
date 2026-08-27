@@ -86,9 +86,6 @@ def main(quiet, load_save, record_data_to_file):
         gamestate.update(inputs)
         perflog.add("game state update")
 
-        simulation.update(dt)
-        perflog.add("simulation update")
-
         simulation.update_entities(dt)
         perflog.add("simulation update entities")
 
