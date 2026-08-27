@@ -89,9 +89,9 @@ class Camera:
         self.position += before - after
         self.clamp_position()
 
-    def focus_on(self, boid):
-        self.position.x = boid.position.x
-        self.position.y = boid.position.y
+    def focus_on(self, x, y):
+        self.position.x = x
+        self.position.y = y
         self.clamp_position()
 
     def center_on_world(self):
@@ -340,26 +340,30 @@ class Renderer:
             self.screen.blit(text, (x, y))
             i += 1
 
-    def draw_focused_data(self, boid):
+    def draw_focused_data(self, bid):
+        entities = self.simulation.entities
+        velocity = entities.velocities[bid]
+        speed = (velocity[0] ** 2 + velocity[1] ** 2) ** 0.5
         lines = [
-            f"Boid #{boid.name}",
+            f"Boid #{bid}",
             "",
-            f"X {boid.position.x:8.2f}",
-            f"Y {boid.position.y:8.2f}",
-            f"Speed {boid.velocity.length():8.2f}",
+            f"Position X {entities.positions[bid][0]:8.2f}",
+            f"Y {entities.positions[bid][1]:8.2f}",
+            f"Velocity X {velocity[0]:8.2f}",
+            f"Y {velocity[1]:8.2f}",
+            f"Speed {speed:8.2f}",
             "",
-            f"Neighbors:  {len(self.simulation.get_neighbors(boid))}",
-            f"Candidates: {len(self.simulation.grid.get_local_agents(boid.position))}",
+            f"Neighbors: {len(self.simulation.get_neighbors(bid))}",
             "",
-            f"Color: {boid.color}",
-            f"Speed range: {boid.min_speed} {boid.max_speed}",
+            "",
+            f"Speed range: {entities.min_speed} {entities.max_speed}",
+            f"Color: {entities.colors[bid]}",
             "",
             f"ESC to unfocus",
         ]
 
         margin = 10
         line_height = self.font.get_height() + 3
-        full_height = len(self.gamestate)
 
         for i, line in enumerate(lines):
             text = self.font.render(
@@ -373,16 +377,33 @@ class Renderer:
 
             self.screen.blit(text, (x, y))
 
-    def draw_entity(self, boid, entities):
+    def draw_entity(self, bid):
 
-        position = entities.positions[boid]
-        screen_position = self.camera.world_to_screen_tuple(position)
-        velocity = entities.velocities[boid]
+        entities = self.simulation.entities
+        focused = self.gamestate["focus"] == bid
+
+        position = entities.positions[bid]
+        screen_pos_x, screen_pos_y = self.camera.world_to_screen_tuple(position)
+        velocity = entities.velocities[bid]
 
         speed = (velocity[0] ** 2 + velocity[1] ** 2) ** 0.5
         direction = velocity / speed
 
-        # Boid body
+        if focused:
+            # Draw neigbor lines
+            nbs = self.simulation.get_neighbors(bid)
+            print(nbs)
+            for nib in nbs:
+                nx, ny = self.camera.world_to_screen_tuple(entities.positions[nib])
+                pygame.draw.line(
+                    self.screen,
+                    "#CBCBCB",
+                    (int(screen_pos_x), int(screen_pos_y)),
+                    (int(nx), int(ny)),
+                    1,
+                )
+
+        # Draw boid body
         tip = position + direction * 12
         back = position - direction * 8
         perpendicular = np.array([-direction[1], direction[0]])
@@ -396,12 +417,13 @@ class Renderer:
         body_points = [
             (int(tip[0]), int(tip[1])),
             (int(left[0]), int(left[1])),
-            (int(screen_position[0]), int(screen_position[1])),
+            (int(screen_pos_x), int(screen_pos_y)),
             (int(right[0]), int(right[1])),
         ]
 
-        # Draw boid body
-        pygame.draw.polygon(self.screen, entities.colors[boid], body_points)
+        pygame.draw.polygon(
+            self.screen, "#CC2424" if focused else entities.colors[bid], body_points
+        )
 
     def handle_inputs(self, dt):
 
@@ -440,22 +462,21 @@ class Renderer:
         # FOCUS ####
         # Focusing
         if self.gamestate["boids_focus_next"]:
-            if self.gamestate["focus"]:
-                self.gamestate["focus"] = self.simulation.boids[
-                    (self.simulation.boids.index(self.gamestate["focus"]) + 1)
-                    % len(self.simulation.boids)
-                ]
-            else:
-                self.gamestate["focus"] = (
-                    self.simulation.boids[0] if len(self.simulation.boids) else None
-                )
-
+            cur_foc = self.gamestate["focus"]
+            self.gamestate["focus"] = (
+                ((cur_foc + 1) % self.simulation.entities.count)
+                if cur_foc is not None
+                else 0 if self.simulation.entities.count else None
+            )
             self.camera.set_zoom(3)
 
         # Boid control
-        if self.gamestate["focus"]:
+        if self.gamestate["focus"] and (
+            self.gamestate["focus_boid_go_left"]
+            or self.gamestate["focus_boid_go_right"]
+        ):
             focused = self.gamestate["focus"]
-            vel = focused.velocity
+            vel = self.simulation.entities.velocities[focused]
             perp = Vector2(vel.y, -vel.x).normalize()
             if self.gamestate["focus_boid_go_left"]:
                 self.gamestate["focus_boid_go_direction"] = perp * vel.length()
@@ -522,16 +543,15 @@ class Renderer:
             )
             self.gamestate["focus_on"] = None
 
-        if self.gamestate["focus"]:
-            self.camera.focus_on(self.gamestate["focus"])
+        if self.gamestate["focus"] is not None:
+            self.camera.focus_on(
+                *self.simulation.entities.positions[self.gamestate["focus"]]
+            )
 
-        for boid in self.simulation.boids:
-            self.draw_boid(boid)
+        for bid in range(0, self.simulation.entities.count):
+            self.draw_entity(bid)
 
-        for boid in range(0, self.simulation.entities.count):
-            self.draw_entity(boid, self.simulation.entities)
-
-        if self.gamestate["focus"]:
+        if self.gamestate["focus"] is not None:
             self.draw_focused_data(self.gamestate["focus"])
 
         if self.gamestate["show_debug"]:
@@ -543,6 +563,7 @@ class Renderer:
         pygame.display.flip()
 
     def save_state(self, dest=SAVE_STATE_FILE, force_write=False):
+        # TODO: refactor for numpy
         or_stem = dest.stem
         dest.parent.mkdir(parents=True, exist_ok=True)
 
