@@ -89,9 +89,9 @@ class Camera:
         self.position += before - after
         self.clamp_position()
 
-    def focus_on(self, boid):
-        self.position.x = boid.position.x
-        self.position.y = boid.position.y
+    def focus_on(self, x, y):
+        self.position.x = x
+        self.position.y = y
         self.clamp_position()
 
     def center_on_world(self):
@@ -440,22 +440,21 @@ class Renderer:
         # FOCUS ####
         # Focusing
         if self.gamestate["boids_focus_next"]:
-            if self.gamestate["focus"]:
-                self.gamestate["focus"] = self.simulation.boids[
-                    (self.simulation.boids.index(self.gamestate["focus"]) + 1)
-                    % len(self.simulation.boids)
-                ]
-            else:
-                self.gamestate["focus"] = (
-                    self.simulation.boids[0] if len(self.simulation.boids) else None
-                )
-
+            cur_foc = self.gamestate["focus"]
+            self.gamestate["focus"] = (
+                ((cur_foc + 1) % self.simulation.entities.count)
+                if cur_foc is not None
+                else 0 if self.simulation.entities.count else None
+            )
             self.camera.set_zoom(3)
 
         # Boid control
-        if self.gamestate["focus"]:
+        if self.gamestate["focus"] and (
+            self.gamestate["focus_boid_go_left"]
+            or self.gamestate["focus_boid_go_right"]
+        ):
             focused = self.gamestate["focus"]
-            vel = focused.velocity
+            vel = self.simulation.entities.velocities[focused]
             perp = Vector2(vel.y, -vel.x).normalize()
             if self.gamestate["focus_boid_go_left"]:
                 self.gamestate["focus_boid_go_direction"] = perp * vel.length()
@@ -522,11 +521,10 @@ class Renderer:
             )
             self.gamestate["focus_on"] = None
 
-        if self.gamestate["focus"]:
-            self.camera.focus_on(self.gamestate["focus"])
-
-        for boid in self.simulation.boids:
-            self.draw_boid(boid)
+        if self.gamestate["focus"] is not None:
+            self.camera.focus_on(
+                *self.simulation.entities.positions[self.gamestate["focus"]]
+            )
 
         for boid in range(0, self.simulation.entities.count):
             self.draw_entity(boid, self.simulation.entities)
@@ -543,6 +541,7 @@ class Renderer:
         pygame.display.flip()
 
     def save_state(self, dest=SAVE_STATE_FILE, force_write=False):
+        # TODO: refactor for numpy
         or_stem = dest.stem
         dest.parent.mkdir(parents=True, exist_ok=True)
 
