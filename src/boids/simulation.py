@@ -19,6 +19,8 @@ class Entities:
     min_speed = 70
     max_speed = 150
 
+    sensor_range = 60
+
     def __init__(self, gamestate, count, width, height):
 
         species_color = "#AA712F"
@@ -236,9 +238,74 @@ class Simulation:
         self.wrap_boids()
         self.perflog.add("boids wrap")
 
+    def get_neighbors_entities(self):
+
+        offsets = (
+            self.entities.positions[:, None, :] - self.entities.positions[None, :, :]
+        )
+        distance_squared = np.sum(offsets**2, axis=2)
+
+        neighbor_mask = distance_squared < self.entities.sensor_range**2
+        np.fill_diagonal(neighbor_mask, False)
+
+        return neighbor_mask, neighbor_mask.sum(axis=1)
+
     def update_entities(self, dt):
 
+        if self.game_state.state["sim_paused"]:
+            return
+
+        # TODO: grid rebuild
+
+        # GET NEIGHBORS ####
+        offsets = (
+            self.entities.positions[:, None, :] - self.entities.positions[None, :, :]
+        )
+        distance_squared = np.sum(offsets**2, axis=2)
+
+        nb_mask = distance_squared < self.entities.sensor_range**2
+        np.fill_diagonal(nb_mask, False)
+
+        nb_count = nb_mask.sum(axis=1)
+
+        # FORCES ####
+
+        has_neighbors = nb_count > 0
+
+        # cohesion
+        position_sums = nb_mask @ self.entities.positions
+        cohesion = np.zeros_like(self.entities.positions)
+        cohesion[has_neighbors] = (
+            position_sums[has_neighbors] / nb_count[has_neighbors, None]
+            - self.entities.positions[has_neighbors]
+        )
+
+        # alignement
+        velocities_sums = nb_mask @ self.entities.velocities
+        alignement = np.zeros_like(self.entities.positions)
+        alignement[has_neighbors] = (
+            velocities_sums[has_neighbors] / nb_count[has_neighbors, None]
+            - self.entities.velocities[has_neighbors]
+        )
+
+        # separation
+        distances = np.sqrt(distance_squared)
+        strength = (
+            (self.entities.sensor_range - distances) / self.entities.sensor_range
+        ) ** 3
+        valid = nb_mask & (distances > 0)
+        strength_over_distance = np.zeros_like(distances)
+        np.divide(strength, distances, out=strength_over_distance, where=valid)
+        contributions = offsets * strength_over_distance[..., None]
+        contributions[~valid] = 0
+        separation = np.sum(contributions, axis=1)
+
+        self.entities.accelerations += separation * 100 + alignement * 1.5 + cohesion
+
+        # UPDATE
         self.entities.update_all(dt)
+
+        # TODO: wrap
 
     def wrap_boids(self):
 
