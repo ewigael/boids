@@ -48,6 +48,7 @@ class Entities:
             )
             * self.initial_speed
         )
+        self.speeds = np.sum(self.velocities, axis=1)
         self.accelerations = np.zeros((count, 2), dtype=np.float32)
         self.colors = [small_change_hex(species_color) for _ in range(0, count)]
 
@@ -72,6 +73,7 @@ class Entities:
 
         # Updating positions
         self.positions += self.velocities * dt
+        self.speeds = np.sum(self.velocities, axis=1)
 
 
 class SpatialGrid:
