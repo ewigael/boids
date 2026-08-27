@@ -340,26 +340,27 @@ class Renderer:
             self.screen.blit(text, (x, y))
             i += 1
 
-    def draw_focused_data(self, boid):
+    def draw_focused_data(self, bid):
+        entities = self.simulation.entities
+        velocity = entities.velocities[bid]
+        speed = (velocity[0] ** 2 + velocity[1] ** 2) ** 0.5
         lines = [
-            f"Boid #{boid.name}",
+            f"Boid #{bid}",
             "",
-            f"X {boid.position.x:8.2f}",
-            f"Y {boid.position.y:8.2f}",
-            f"Speed {boid.velocity.length():8.2f}",
+            f"Position X {entities.positions[bid][0]:8.2f}",
+            f"Y {entities.positions[bid][1]:8.2f}",
+            f"Velocity X {velocity[0]:8.2f}",
+            f"Y {velocity[1]:8.2f}",
+            f"Speed {speed:8.2f}",
+            f"Speed range: {entities.min_speed} {entities.max_speed}",
             "",
-            f"Neighbors:  {len(self.simulation.get_neighbors(boid))}",
-            f"Candidates: {len(self.simulation.grid.get_local_agents(boid.position))}",
-            "",
-            f"Color: {boid.color}",
-            f"Speed range: {boid.min_speed} {boid.max_speed}",
+            f"Color: {entities.colors[bid]}",
             "",
             f"ESC to unfocus",
         ]
 
         margin = 10
         line_height = self.font.get_height() + 3
-        full_height = len(self.gamestate)
 
         for i, line in enumerate(lines):
             text = self.font.render(
@@ -529,7 +530,7 @@ class Renderer:
         for boid in range(0, self.simulation.entities.count):
             self.draw_entity(boid, self.simulation.entities)
 
-        if self.gamestate["focus"]:
+        if self.gamestate["focus"] is not None:
             self.draw_focused_data(self.gamestate["focus"])
 
         if self.gamestate["show_debug"]:
