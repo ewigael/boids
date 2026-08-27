@@ -23,13 +23,17 @@ class Entities:
 
     sensor_range = 60
 
-    def __init__(self, gamestate, count, width, height):
+    def __init__(self, gamestate, count=0, width=0, height=0, load_save=None):
 
         species_color = "#AA712F"
         self.gamestate = gamestate
 
         if not gamestate["quiet"]:
             print(f"> generating entities ({count})")
+
+        if load_save:
+            self.load_from_save(load_save)
+            return
 
         self.count = count
         self.gamestate["boids_count"] = count
@@ -86,6 +90,18 @@ class Entities:
             "colors": self.colors,
         }
 
+    def load_from_save(self, load_save):
+        self.count = load_save["entities"]["count"]
+        self.positions = np.array(load_save["entities"]["positions"], dtype=np.float32)
+        self.velocities = np.array(
+            load_save["entities"]["velocities"], dtype=np.float32
+        )
+        self.speeds = np.array(load_save["entities"]["speeds"], dtype=np.float32)
+        self.accelerations = np.array(
+            load_save["entities"]["accelerations"], dtype=np.float32
+        )
+        self.colors = load_save["entities"]["colors"]
+
 
 class SpatialGrid:
     def __init__(self, cell_size):
@@ -138,11 +154,16 @@ class Simulation:
             print("Initialising Simulation...")
         self.gamestate = game_state.state
 
-        self.entities = Entities(self.gamestate, boids_count, width, height)
-        self.width = width
-        self.height = height
-
         self.nb_mask = None
+
+        if load_save:
+            self.width = int(load_save["world"][0])
+            self.height = int(load_save["world"][1])
+            self.entities = Entities(self.gamestate, load_save=load_save)
+        else:
+            self.entities = Entities(self.gamestate, boids_count, width, height)
+            self.width = width
+            self.height = height
 
         # if load_save:
         #     if not game_state.state["quiet"]:
