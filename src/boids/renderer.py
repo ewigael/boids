@@ -1,6 +1,7 @@
 import pygame
 from pathlib import Path
 import json
+import numpy as np
 
 from .vector2 import Vector2
 from perflogger import PerfLogger
@@ -114,6 +115,17 @@ class Camera:
         return Vector2(
             (spos_x - self.screen_width / 2) / self.zoom + self.position.x,
             (spos_y - self.screen_height / 2) / self.zoom + self.position.y,
+        )
+
+    def world_to_screen_tuple(self, world_position):
+        relative = (
+            world_position[0] - self.position.x,
+            world_position[1] - self.position.y,
+        )
+
+        return (
+            relative[0] * self.zoom + self.screen_width / 2,
+            relative[1] * self.zoom + self.screen_height / 2,
         )
 
 
@@ -361,6 +373,36 @@ class Renderer:
 
             self.screen.blit(text, (x, y))
 
+    def draw_entity(self, boid, entities):
+
+        position = entities.positions[boid]
+        screen_position = self.camera.world_to_screen_tuple(position)
+        velocity = entities.velocities[boid]
+
+        speed = (velocity[0] ** 2 + velocity[1] ** 2) ** 0.5
+        direction = velocity / speed
+
+        # Boid body
+        tip = position + direction * 12
+        back = position - direction * 8
+        perpendicular = np.array([-direction[1], direction[0]])
+        left = back + perpendicular * 6
+        right = back - perpendicular * 6
+
+        tip = self.camera.world_to_screen_tuple(tip)
+        left = self.camera.world_to_screen_tuple(left)
+        right = self.camera.world_to_screen_tuple(right)
+
+        body_points = [
+            (int(tip[0]), int(tip[1])),
+            (int(left[0]), int(left[1])),
+            (int(screen_position[0]), int(screen_position[1])),
+            (int(right[0]), int(right[1])),
+        ]
+
+        # Draw boid body
+        pygame.draw.polygon(self.screen, entities.colors[boid], body_points)
+
     def handle_inputs(self, dt):
 
         # CAMERA ####
@@ -485,6 +527,9 @@ class Renderer:
 
         for boid in self.simulation.boids:
             self.draw_boid(boid)
+
+        for boid in range(0, self.simulation.entities.count):
+            self.draw_entity(boid, self.simulation.entities)
 
         if self.gamestate["focus"]:
             self.draw_focused_data(self.gamestate["focus"])
