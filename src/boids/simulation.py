@@ -16,6 +16,9 @@ class Entities:
 
     initial_speed = 100
 
+    min_speed = 70
+    max_speed = 150
+
     def __init__(self, gamestate, count, width, height):
 
         species_color = "#AA712F"
@@ -25,7 +28,6 @@ class Entities:
             print(f"> generating entities ({count})")
 
         self.count = count
-
         self.positions = np.random.randint(0, [width, height], size=(count, 2)).astype(
             np.float32
         )
@@ -40,10 +42,30 @@ class Entities:
             )
             * self.initial_speed
         )
-
         self.accelerations = np.zeros((count, 2), dtype=np.float32)
-
         self.colors = [small_change_hex(species_color) for _ in range(0, count)]
+
+    def update_all(self, dt):
+        """Update all entities, taking advantage of numpy"""
+
+        # Applying accelerations
+        self.velocities += self.accelerations * dt
+        self.accelerations.fill(0)
+
+        # Clamping speeds
+        speed_squared = np.sum(self.velocities**2, axis=1)
+
+        too_slow = speed_squared < self.min_speed**2
+        too_fast = speed_squared > self.max_speed**2
+
+        # TODO: Remove unnecessary square roots
+        speeds = np.sqrt(speed_squared)
+
+        self.velocities[too_slow] *= self.min_speed / speeds[too_slow, None]
+        self.velocities[too_fast] *= self.max_speed / speeds[too_fast, None]
+
+        # Updating positions
+        self.positions += self.velocities * dt
 
 
 class SpatialGrid:
@@ -209,6 +231,7 @@ class Simulation:
 
         for boid in self.boids:
             boid.update(dt)
+        self.entities.update_all(dt)
         self.perflog.add("boids update")
 
         self.wrap_boids()
