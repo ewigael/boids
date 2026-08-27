@@ -501,12 +501,11 @@ class Renderer:
         pygame.display.flip()
 
     def save_state(self, dest=SAVE_STATE_FILE, force_write=False):
-        # TODO: refactor for numpy
         or_stem = dest.stem
         dest.parent.mkdir(parents=True, exist_ok=True)
 
         i = 1
-        while force_write or dest.exists():
+        while not force_write and dest.exists():
             file_name = f"{or_stem}{i}{dest.suffix}"
             dest = dest.parent / file_name
             i += 1
@@ -514,29 +513,18 @@ class Renderer:
         state = {
             "state": {
                 k: (
-                    {"name": v.name, "species": v.species}
-                    if k == "focus" and v is not None
-                    else (
-                        tuple(v)
-                        if k == "focus_boid_go_direction" and v is not None
-                        else v
-                    )
+                    v.to_list()
+                    if k == "focus_boid_go_direction" and v is not None
+                    else v
                 )
                 for k, v in self.gamestate.items()
             },
             "world": (self.simulation.width, self.simulation.height),
-            "boids": [
-                {
-                    "name": boid.name,
-                    "species": boid.species,
-                    "position": tuple(boid.position),
-                    "velocity": tuple(boid.velocity),
-                    "acceleration": tuple(boid.acceleration),
-                    "color": boid.color,
-                }
-                for boid in self.simulation.boids
-            ],
+            "entities": self.simulation.entities.to_list(),
         }
 
         with open(dest, "w") as file:
             json.dump(state, file, indent=4)
+
+        if not self.gamestate["quiet"]:
+            print(f"Saved at {dest}")

@@ -75,6 +75,17 @@ class Entities:
         self.positions += self.velocities * dt
         self.speeds = np.linalg.norm(self.velocities, axis=1)
 
+    def to_list(self):
+        """Returns a list version of Entities data, to be used for serialization"""
+        return {
+            "count": self.count,
+            "positions": self.positions.tolist(),
+            "velocities": self.velocities.tolist(),
+            "speeds": self.speeds.tolist(),
+            "accelerations": self.accelerations.tolist(),
+            "colors": self.colors,
+        }
+
 
 class SpatialGrid:
     def __init__(self, cell_size):
