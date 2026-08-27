@@ -18,7 +18,7 @@ class Entities:
 
     def __init__(self, gamestate, count, width, height):
 
-        species_color = "#FFC927"
+        species_color = "#AA712F"
         self.gamestate = gamestate
 
         if not gamestate["quiet"]:
