@@ -409,7 +409,6 @@ class Renderer:
         ):
             focused = self.gamestate["focus"]
             vel = self.simulation.entities.velocities[focused]
-            print(">>", self.simulation.entities.speeds[focused], "<<")
             if self.simulation.entities.speeds[focused] > 0:
                 perp = (
                     np.array([vel[1], -vel[0]])
