@@ -48,7 +48,7 @@ class Entities:
             )
             * self.initial_speed
         )
-        self.speeds = np.sum(self.velocities, axis=1)
+        self.speeds = np.linalg.norm(self.velocities, axis=1)
         self.accelerations = np.zeros((count, 2), dtype=np.float32)
         self.colors = [small_change_hex(species_color) for _ in range(0, count)]
 
@@ -73,7 +73,7 @@ class Entities:
 
         # Updating positions
         self.positions += self.velocities * dt
-        self.speeds = np.sum(self.velocities, axis=1)
+        self.speeds = np.linalg.norm(self.velocities, axis=1)
 
 
 class SpatialGrid:
@@ -265,6 +265,21 @@ class Simulation:
         contributions = offsets * strength_over_distance[..., None]
         contributions[~valid] = 0
         separation = np.sum(contributions, axis=1)
+
+        # control
+        if self.gamestate["focus"] is not None:
+            bid = self.gamestate["focus"]
+            force = np.zeros(2)
+            if self.gamestate["focus_boid_go_direction"] is not None:
+                force += (
+                    self.gamestate["focus_boid_go_direction"] * 2
+                    - self.entities.velocities[bid]
+                )
+            if self.gamestate["focus_boid_go_faster"]:
+                force += self.entities.velocities[bid] * 1.1
+            if self.gamestate["focus_boid_go_slower"]:
+                force -= self.entities.velocities[bid] * 1.1
+            self.entities.accelerations[bid] += force
 
         self.entities.accelerations += separation * 100 + alignement * 1.5 + cohesion
 

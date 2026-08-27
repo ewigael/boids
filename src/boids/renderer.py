@@ -403,23 +403,30 @@ class Renderer:
             self.camera.set_zoom(3)
 
         # Boid control
-        if self.gamestate["focus"] and (
+        if self.gamestate["focus"] is not None and (
             self.gamestate["focus_boid_go_left"]
             or self.gamestate["focus_boid_go_right"]
         ):
             focused = self.gamestate["focus"]
             vel = self.simulation.entities.velocities[focused]
-            perp = Vector2(vel.y, -vel.x).normalize()
+            print(">>", self.simulation.entities.speeds[focused], "<<")
+            if self.simulation.entities.speeds[focused] > 0:
+                perp = (
+                    np.array([vel[1], -vel[0]])
+                    / self.simulation.entities.speeds[focused]
+                )
+            else:
+                perp = np.zeros(2)
             if self.gamestate["focus_boid_go_left"]:
-                self.gamestate["focus_boid_go_direction"] = perp * vel.length()
+                self.gamestate["focus_boid_go_direction"] = (
+                    perp * self.simulation.entities.speeds[focused]
+                )
             if self.gamestate["focus_boid_go_right"]:
-                self.gamestate["focus_boid_go_direction"] = -perp * vel.length()
-
-            if (
-                not self.gamestate["focus_boid_go_left"]
-                and not self.gamestate["focus_boid_go_right"]
-            ):
-                self.gamestate["focus_boid_go_direction"] = None
+                self.gamestate["focus_boid_go_direction"] = (
+                    -perp * self.simulation.entities.speeds[focused]
+                )
+        else:
+            self.gamestate["focus_boid_go_direction"] = None
 
         # Clearing focus
         if self.gamestate["boids_clear_focus"]:
