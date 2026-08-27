@@ -2,11 +2,48 @@
 
 from random import randint
 import pygame
+import numpy as np
+from perflogger import PerfLogger
 
 from .boid import Boid
 from .behaviors import flock, avoid_boundary
-from perflogger import PerfLogger
 from .vector2 import Vector2
+
+from .colors import small_change_hex
+
+
+class Entities:
+
+    initial_speed = 100
+
+    def __init__(self, gamestate, count, width, height):
+
+        species_color = "#FFC927"
+        self.gamestate = gamestate
+
+        if not gamestate["quiet"]:
+            print(f"> generating entities ({count})")
+
+        self.count = count
+
+        self.positions = np.random.randint(0, [width, height], size=(count, 2)).astype(
+            np.float32
+        )
+
+        angles = np.random.uniform(0, 2 * np.pi, size=count)
+        self.velocities = (
+            np.column_stack(
+                (
+                    np.cos(angles),
+                    np.sin(angles),
+                )
+            )
+            * self.initial_speed
+        )
+
+        self.accelerations = np.zeros((count, 2), dtype=np.float32)
+
+        self.colors = [small_change_hex(species_color) for _ in range(0, count)]
 
 
 class SpatialGrid:
@@ -59,6 +96,8 @@ class Simulation:
         if not game_state.state["quiet"]:
             print("Initialising Simulation...")
         self.game_state = game_state
+
+        self.entities = Entities(game_state.state, boids_count, width, height)
 
         if load_save:
             if not game_state.state["quiet"]:
