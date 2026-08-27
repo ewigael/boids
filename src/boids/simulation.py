@@ -14,6 +14,8 @@ from .colors import small_change_hex
 
 class Entities:
 
+    # TODO: Add speed table, would aboid resqrting everything for drawing
+
     initial_speed = 100
 
     min_speed = 70
@@ -127,6 +129,8 @@ class Simulation:
         self.width = width
         self.height = height
 
+        self.nb_mask = None
+
         # if load_save:
         #     if not game_state.state["quiet"]:
         #         print("> Loading from file")
@@ -188,6 +192,12 @@ class Simulation:
 
         return closest
 
+    def get_neighbors(self, bid):
+        if self.nb_mask is not None:
+            return np.flatnonzero(self.nb_mask[bid])
+        else:
+            return []
+
     def get_neighbors_entities(self):
 
         offsets = (
@@ -219,6 +229,7 @@ class Simulation:
         np.fill_diagonal(nb_mask, False)
 
         nb_count = nb_mask.sum(axis=1)
+        self.nb_mask = nb_mask
 
         self.perflog.add("get_neighbors")
 
