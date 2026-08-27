@@ -5,8 +5,10 @@ from .vector2 import Vector2
 MAX_ALIGNMENT = 10
 
 SEPARATION_STR = 100
-ALIGNEMENT_STR = 1
-COHESION_STR = 1
+ALIGNEMENT_STR = 1.5
+COHESION_STR = 2
+
+AVOID_BOUNDARY_STR = 200
 
 
 def separation(boid, neighbors):
@@ -96,3 +98,19 @@ def flock(boid, neighbors):
         return Vector2(0, 0)
     else:
         return sep_ali_coh(boid, neighbors)
+
+
+def avoid_boundary(boid, world_width, world_height):
+    force_x = force_y = 0
+    margin = 100
+
+    if boid.position.x < margin:
+        force_x = (margin - boid.position.x) / margin
+    elif boid.position.x > world_width - margin:
+        force_x = -(boid.position.x - (world_width - margin)) / margin
+    if boid.position.y < margin:
+        force_y = (margin - boid.position.y) / margin
+    elif boid.position.y > world_height - margin:
+        force_y = -(boid.position.y - (world_height - margin)) / margin
+
+    return Vector2(force_x, force_y) * AVOID_BOUNDARY_STR

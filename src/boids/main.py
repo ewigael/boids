@@ -43,11 +43,15 @@ BOID_COUNT = 200
     type=click.Path(exists=True, path_type=Path),
     help="Load a .boids save file, loads game state and simulation state",
 )
-def main(quiet, load_save):
+@click.option("-r", "--record-data-to-file", type=click.Path(), default=None)
+def main(quiet, load_save, record_data_to_file):
     if not quiet:
         print_metadata(pygame)
 
-    perflog = PerfLogger("main")
+    if record_data_to_file is not None:
+        data_output_path = Path(record_data_to_file)
+    else:
+        data_output_path = None
 
     if load_save:
         if not quiet:
@@ -57,7 +61,10 @@ def main(quiet, load_save):
 
     pygame.init()
 
+    perflog = PerfLogger("main", output_file_path=data_output_path)
+
     gamestate = GameState(quiet, load_save)
+    gamestate.state["data_output_path"] = data_output_path
     inputs = InputManager(gamestate)
 
     simulation = Simulation(
