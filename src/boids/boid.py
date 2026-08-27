@@ -8,8 +8,8 @@ from .colors import small_change_hex
 class Boid:
 
     sensor_range = 60
-    min_speed = 60
-    max_speed = 200
+    min_speed = 70
+    max_speed = 150
     sensor_range_squared = 60**2
 
     def __init__(

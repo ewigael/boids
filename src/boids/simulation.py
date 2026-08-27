@@ -4,7 +4,7 @@ from random import randint
 import pygame
 
 from .boid import Boid
-from .behaviors import flock
+from .behaviors import flock, avoid_boundary
 from perflogger import PerfLogger
 from .vector2 import Vector2
 
@@ -154,6 +154,7 @@ class Simulation:
 
         for boid, neighbors in zip(self.boids, neighbor_list):
             force = flock(boid, neighbors)
+            force += avoid_boundary(boid, self.width, self.height)
 
             if boid == self.game_state.state["focus"]:
                 if self.game_state.state["focus_boid_go_direction"]:
