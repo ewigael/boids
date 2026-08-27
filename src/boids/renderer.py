@@ -128,6 +128,14 @@ class Camera:
             relative[1] * self.zoom + self.screen_height / 2,
         )
 
+    def screen_to_world_tuple(self, screen_position):
+        spos_x, spos_y = screen_position
+
+        return (
+            (spos_x - self.screen_width / 2) / self.zoom + self.position.x,
+            (spos_y - self.screen_height / 2) / self.zoom + self.position.y,
+        )
+
 
 class Renderer:
     def __init__(
@@ -463,7 +471,7 @@ class Renderer:
 
         if self.gamestate["focus_on"]:
             self.gamestate["focus"] = self.simulation.find_boid_at(
-                self.camera.screen_to_world(self.gamestate["focus_on"])
+                self.camera.screen_to_world_tuple(self.gamestate["focus_on"])
             )
             self.gamestate["focus_on"] = None
 

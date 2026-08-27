@@ -178,17 +178,16 @@ class Simulation:
 
     def find_boid_at(self, target, _range=20):
         """Find the closest boid to target within range"""
-        # TODO: Refactor for numpy
-        closest = None
-        clo_dis_sqr = _range**2
 
-        for candidate in self.grid.iter_local_agents(target):
-            can_dis_sqr = (candidate.position.x - target.x) ** 2 + (
-                candidate.position.y - target.y
-            ) ** 2
-            if can_dis_sqr < clo_dis_sqr:
-                closest = candidate
-                clo_dis_sqr = can_dis_sqr
+        delta = self.entities.positions - target
+        distance_squared = np.sum(delta**2, axis=1)
+        within_range = distance_squared < _range**2
+
+        if not np.any(within_range):
+            return None
+
+        candidates = np.where(within_range)[0]
+        closest = candidates[np.argmin(distance_squared[within_range])]
 
         return closest
 
