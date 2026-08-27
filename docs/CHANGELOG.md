@@ -14,7 +14,8 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 ### Added
 
 - `-r` `--record-data-to-file` `[PATH]` to send performance logging to a file! terribly useful for developping.
-- use n/m to spawn/despawn boids at will!
+- Use n/m to spawn/despawn boids at will!
+- Added boundary avoidance behavior
 
 ### Changed
 
