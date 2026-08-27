@@ -352,8 +352,11 @@ class Renderer:
             f"Velocity X {velocity[0]:8.2f}",
             f"Y {velocity[1]:8.2f}",
             f"Speed {speed:8.2f}",
-            f"Speed range: {entities.min_speed} {entities.max_speed}",
             "",
+            f"Neighbors: {len(self.simulation.get_neighbors(bid))}",
+            "",
+            "",
+            f"Speed range: {entities.min_speed} {entities.max_speed}",
             f"Color: {entities.colors[bid]}",
             "",
             f"ESC to unfocus",
@@ -374,16 +377,33 @@ class Renderer:
 
             self.screen.blit(text, (x, y))
 
-    def draw_entity(self, boid, entities):
+    def draw_entity(self, bid):
 
-        position = entities.positions[boid]
-        screen_position = self.camera.world_to_screen_tuple(position)
-        velocity = entities.velocities[boid]
+        entities = self.simulation.entities
+        focused = self.gamestate["focus"] == bid
+
+        position = entities.positions[bid]
+        screen_pos_x, screen_pos_y = self.camera.world_to_screen_tuple(position)
+        velocity = entities.velocities[bid]
 
         speed = (velocity[0] ** 2 + velocity[1] ** 2) ** 0.5
         direction = velocity / speed
 
-        # Boid body
+        if focused:
+            # Draw neigbor lines
+            nbs = self.simulation.get_neighbors(bid)
+            print(nbs)
+            for nib in nbs:
+                nx, ny = self.camera.world_to_screen_tuple(entities.positions[nib])
+                pygame.draw.line(
+                    self.screen,
+                    "#CBCBCB",
+                    (int(screen_pos_x), int(screen_pos_y)),
+                    (int(nx), int(ny)),
+                    1,
+                )
+
+        # Draw boid body
         tip = position + direction * 12
         back = position - direction * 8
         perpendicular = np.array([-direction[1], direction[0]])
@@ -397,12 +417,13 @@ class Renderer:
         body_points = [
             (int(tip[0]), int(tip[1])),
             (int(left[0]), int(left[1])),
-            (int(screen_position[0]), int(screen_position[1])),
+            (int(screen_pos_x), int(screen_pos_y)),
             (int(right[0]), int(right[1])),
         ]
 
-        # Draw boid body
-        pygame.draw.polygon(self.screen, entities.colors[boid], body_points)
+        pygame.draw.polygon(
+            self.screen, "#CC2424" if focused else entities.colors[bid], body_points
+        )
 
     def handle_inputs(self, dt):
 
@@ -527,8 +548,8 @@ class Renderer:
                 *self.simulation.entities.positions[self.gamestate["focus"]]
             )
 
-        for boid in range(0, self.simulation.entities.count):
-            self.draw_entity(boid, self.simulation.entities)
+        for bid in range(0, self.simulation.entities.count):
+            self.draw_entity(bid)
 
         if self.gamestate["focus"] is not None:
             self.draw_focused_data(self.gamestate["focus"])
