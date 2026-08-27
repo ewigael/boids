@@ -89,6 +89,9 @@ def main(quiet, load_save, record_data_to_file):
         simulation.update(dt)
         perflog.add("simulation update")
 
+        simulation.update_entities(dt)
+        perflog.add("simulation update entities")
+
         renderer.handle_inputs(dt)
         perflog.add("renderer handle inputs")
 

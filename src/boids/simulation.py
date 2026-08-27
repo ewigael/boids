@@ -231,11 +231,14 @@ class Simulation:
 
         for boid in self.boids:
             boid.update(dt)
-        self.entities.update_all(dt)
         self.perflog.add("boids update")
 
         self.wrap_boids()
         self.perflog.add("boids wrap")
+
+    def update_entities(self, dt):
+
+        self.entities.update_all(dt)
 
     def wrap_boids(self):
 
