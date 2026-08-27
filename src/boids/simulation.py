@@ -305,10 +305,13 @@ class Simulation:
         # UPDATE
         self.entities.update_all(dt)
 
-        # TODO: wrap
+        # WRAP
+        self.wrap_entities()
 
     def wrap_boids(self):
-
         for boid in self.boids:
             boid.position.x %= self.width
             boid.position.y %= self.height
+
+    def wrap_entities(self):
+        self.entities.positions %= np.array([(self.width, self.height)])
