@@ -203,82 +203,6 @@ class Renderer:
             ],
         )
 
-    def draw_boid(self, boid):
-
-        focused = self.gamestate["focus"] == boid
-
-        boid_screen_position = self.camera.world_to_screen(boid.position)
-        direction = boid.velocity.normalize()
-
-        # Boid body
-        tip = boid.position + direction * 12
-        back = boid.position - direction * 8
-        perpendicular = Vector2(-direction.y, direction.x)
-        left = back + perpendicular * 6
-        right = back - perpendicular * 6
-
-        tip = self.camera.world_to_screen(tip)
-        left = self.camera.world_to_screen(left)
-        right = self.camera.world_to_screen(right)
-
-        body_points = [
-            (int(tip.x), int(tip.y)),
-            (int(left.x), int(left.y)),
-            (int(boid_screen_position.x), int(boid_screen_position.y)),
-            (int(right.x), int(right.y)),
-        ]
-
-        # Boid sensor
-        if focused or self.gamestate["boids_show_sensor"]:
-
-            radius = boid.sensor_range * self.camera.zoom
-
-            pygame.draw.circle(
-                self.screen,
-                "#444444",
-                (int(boid_screen_position.x), int(boid_screen_position.y)),
-                radius,
-                1,
-            )
-
-        # Boid neighbors
-        if focused:
-            neighbors = self.simulation.get_neighbors(boid)
-            candidates = self.simulation.grid.get_local_agents(boid.position)
-
-            for candidate in candidates:
-                if candidate is boid:
-                    continue
-                c_pos = self.camera.world_to_screen(candidate.position)
-                pygame.draw.line(
-                    self.screen,
-                    "#CBCBCB" if candidate in neighbors else "#393939",
-                    (int(boid_screen_position.x), int(boid_screen_position.y)),
-                    (int(c_pos.x), int(c_pos.y)),
-                    2 if candidate in neighbors else 1,
-                )
-
-            for neighbor in neighbors:
-                if neighbor is boid:
-                    continue
-                n_pos = self.camera.world_to_screen(neighbor.position)
-                pygame.draw.line(
-                    self.screen,
-                    "#CBCBCB",
-                    (int(boid_screen_position.x), int(boid_screen_position.y)),
-                    (int(n_pos.x), int(n_pos.y)),
-                    1,
-                )
-
-        # Draw boid body
-        pygame.draw.polygon(
-            self.screen, "#C51313" if focused else boid.color, body_points
-        )
-
-        # Vectors
-        if focused:
-            self.draw_vector(boid.position, boid.velocity, "#EDAA46")
-
     def draw_debug(self, camera, fps):
 
         debug_mode = self.gamestate["show_debug"]
@@ -390,9 +314,9 @@ class Renderer:
         direction = velocity / speed
 
         if focused:
+            # TODO: Draw candidates lines
             # Draw neigbor lines
             nbs = self.simulation.get_neighbors(bid)
-            print(nbs)
             for nib in nbs:
                 nx, ny = self.camera.world_to_screen_tuple(entities.positions[nib])
                 pygame.draw.line(
