@@ -175,7 +175,7 @@ class SpatialGrid:
 
         for dy in (-1, 0, 1):
             for dx in (-1, 0, 1):
-                nx = x + dy
+                nx = x + dx
                 ny = y + dy
 
                 if 0 <= nx < self.cols and 0 <= ny < self.rows:
@@ -232,7 +232,30 @@ class Simulation:
         self.grid = SpatialGrid(60, self.width, self.height)
         self.grid.rebuild(self.entities)
 
+        self.sources = self.targets = self.candidates_sources = (
+            self.candidates_targets
+        ) = None
         self.perflog = PerfLogger("Simulation", avgs_step=0.5)
+
+    @property
+    def neighbors_ready(self):
+        return all(
+            x is not None
+            for x in (
+                self.candidates_sources,
+                self.candidates_targets,
+                self.sources,
+                self.targets,
+            )
+        )
+
+    def get_candidates(self, bid):
+        candidate_mask = self.candidates_sources == bid
+        return self.candidates_targets[candidate_mask].tolist()
+
+    def get_neighbors(self, bid):
+        neighbor_mask = self.sources == bid
+        return self.targets[neighbor_mask].tolist()
 
     def find_boid_at(self, target, _range=20):
         """Find the closest boid to target within range"""
@@ -249,24 +272,6 @@ class Simulation:
 
         return closest
 
-    def get_neighbors(self, bid):
-        if self.nb_mask is not None:
-            return np.flatnonzero(self.nb_mask[bid])
-        else:
-            return []
-
-    def get_neighbors_entities(self):
-
-        offsets = (
-            self.entities.positions[:, None, :] - self.entities.positions[None, :, :]
-        )
-        distance_squared = np.sum(offsets**2, axis=2)
-
-        neighbor_mask = distance_squared < self.entities.sensor_range**2
-        np.fill_diagonal(neighbor_mask, False)
-
-        return neighbor_mask, neighbor_mask.sum(axis=1)
-
     def update_entities(self, dt):
 
         if self.gamestate["sim_paused"]:
@@ -277,26 +282,27 @@ class Simulation:
         # GET CANDITATES ####
 
         self.grid.rebuild(self.entities)
-        candidates_sources, candidates_targets = self.grid.get_candidate_pairs()
+        self.candidates_sources, self.candidates_targets = (
+            self.grid.get_candidate_pairs()
+        )
         self.perflog.add("grid_rebuild")
 
         # GET NEIGHBORS ####
         offsets = (
-            self.entities.positions[candidates_sources]
-            - self.entities.positions[candidates_targets]
+            self.entities.positions[self.candidates_sources]
+            - self.entities.positions[self.candidates_targets]
         )
         distance_squared = np.sum(offsets**2, axis=1)
         valid = distance_squared < self.entities.sensor_range_squared
 
-        sources = candidates_sources[valid]
-        targets = candidates_targets[valid]
+        self.sources = self.candidates_sources[valid]
+        self.targets = self.candidates_targets[valid]
+
         offsets = offsets[valid]
         distance_squared = distance_squared[valid]
 
-        pairs = set(zip(sources, targets))
-
         nb_count = np.bincount(
-            sources,
+            self.sources,
             minlength=self.entities.count,
         )
 
@@ -308,7 +314,7 @@ class Simulation:
 
         # cohesion
         position_sums = np.zeros_like(self.entities.positions)
-        np.add.at(position_sums, sources, self.entities.positions[targets])
+        np.add.at(position_sums, self.sources, self.entities.positions[self.targets])
 
         cohesion = np.zeros_like(self.entities.positions)
         cohesion[has_neighbors] = (
@@ -319,7 +325,7 @@ class Simulation:
 
         # alignement
         velocities_sums = np.zeros_like(self.entities.velocities)
-        np.add.at(velocities_sums, sources, self.entities.velocities[targets])
+        np.add.at(velocities_sums, self.sources, self.entities.velocities[self.targets])
 
         alignement = np.zeros_like(self.entities.positions)
         alignement[has_neighbors] = (
@@ -343,7 +349,7 @@ class Simulation:
         contributions = offsets * strength_over_distance[:, None]
 
         separation = np.zeros_like(self.entities.positions)
-        np.add.at(separation, sources, contributions)
+        np.add.at(separation, self.sources, contributions)
         self.perflog.add("separation")
 
         # control

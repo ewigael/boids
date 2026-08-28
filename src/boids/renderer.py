@@ -321,11 +321,23 @@ class Renderer:
         speed = (velocity[0] ** 2 + velocity[1] ** 2) ** 0.5
         direction = velocity / speed
 
-        if focused:
+        if focused and self.simulation.neighbors_ready:
+
+            candidates = self.simulation.get_candidates(bid)
+            for nib in candidates:
+                nx, ny = self.camera.world_to_screen_tuple(entities.positions[nib])
+                pygame.draw.line(
+                    self.screen,
+                    "#404040",
+                    (int(screen_pos_x), int(screen_pos_y)),
+                    (int(nx), int(ny)),
+                    1,
+                )
+
             # TODO: Draw candidates lines
             # Draw neigbor lines
-            nbs = self.simulation.get_neighbors(bid)
-            for nib in nbs:
+            neighbors = self.simulation.get_neighbors(bid)
+            for nib in neighbors:
                 nx, ny = self.camera.world_to_screen_tuple(entities.positions[nib])
                 pygame.draw.line(
                     self.screen,
