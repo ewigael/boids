@@ -162,12 +162,19 @@ class SpatialGrid:
         return y * self.cols + x
 
     def rebuild(self, entities):
-        for cell in self.cells:
-            cell.clear()
+        cell_xy = (entities.positions // self.cell_size).astype(np.intp)
+        cell_indices = cell_xy[:, 1] * self.cols + cell_xy[:, 0]
 
-        for bid, position in enumerate(entities.positions):
-            index = self.cell_index(position)
-            self.cells[index].append(bid)
+        self.sorted_boids = np.argsort(cell_indices, kind="quicksort")
+
+        self.sorted_cells = cell_indices[self.sorted_boids]
+
+        self.cell_counts = np.bincount(
+            self.sorted_cells,
+            minlength=self.cols * self.rows,
+        )
+
+        self.cell_starts = np.cumsum(self.cell_counts) - self.cell_counts
 
     def get_neighbor_cells(self, cell_index):
         x = cell_index % self.cols
@@ -185,30 +192,46 @@ class SpatialGrid:
         sources = []
         targets = []
 
-        for ci, cell in enumerate(self.cells):
-            # going through all cells
+        for ci in np.flatnonzero(self.cell_counts):
+            start = self.cell_starts[ci]
+            end = start + self.cell_counts[ci]
+            cell = self.sorted_boids[start:end]
 
             # this cell's pairs
-            for i in range(len(cell)):
-                for j in range(i + 1, len(cell)):
-                    a = cell[i]
-                    b = cell[j]
+            if len(cell) > 1:
+                i, j = np.triu_indices(len(cell), k=1)
+                a = cell[i]
+                b = cell[j]
 
-                    sources.extend([a, b])
-                    targets.extend([b, a])
+                sources.append(np.concatenate([a, b]))
+                targets.append(np.concatenate([b, a]))
 
             # neighbor cells pairs
             for ni in self.get_neighbor_cells(ci):
+                if self.cell_counts[ni] == 0:
+                    continue
                 if ni <= ci:
                     continue
 
-                neighbors = self.cells[ni]
-                for a in cell:
-                    for b in neighbors:
-                        sources.extend([a, b])
-                        targets.extend([b, a])
+                start = self.cell_starts[ni]
+                end = start + self.cell_counts[ni]
+                neighbors = self.sorted_boids[start:end]
 
-        return np.array(sources, dtype=np.intp), np.array(targets, dtype=np.intp)
+                if len(cell) == 0 or len(neighbors) == 0:
+                    continue
+
+                a, b = np.meshgrid(cell, neighbors, indexing="ij")
+
+                a = a.ravel()
+                b = b.ravel()
+
+                sources.append(np.concatenate([a, b]))
+                targets.append(np.concatenate([b, a]))
+
+        return (
+            np.concatenate(sources),
+            np.concatenate(targets),
+        )
 
 
 class Simulation:
@@ -282,10 +305,11 @@ class Simulation:
         # GET CANDITATES ####
 
         self.grid.rebuild(self.entities)
+        self.perflog.add("grid_rebuild")
         self.candidates_sources, self.candidates_targets = (
             self.grid.get_candidate_pairs()
         )
-        self.perflog.add("grid_rebuild")
+        self.perflog.add("get_candidate_pairs")
 
         # GET NEIGHBORS ####
         offsets = (
