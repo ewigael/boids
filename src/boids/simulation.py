@@ -305,8 +305,8 @@ class Simulation:
         strength_matrix = np.zeros_like(distance_squared)
         strength_matrix[nb_mask] = strength_over_distance
 
-        contributions = offsets * strength_matrix[..., None]
-        separation = np.sum(contributions, axis=1)
+        offsets *= strength_matrix[..., None]
+        separation = np.sum(offsets, axis=1)
         self.perflog.add("separation")
 
         # control
