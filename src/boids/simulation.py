@@ -204,46 +204,6 @@ class Simulation:
             self.width = width
             self.height = height
 
-        # if load_save:
-        #     if not game_state.state["quiet"]:
-        #         print("> Loading from file")
-
-        #         # loading entities
-        #         self.boids = []
-        #         for boid in load_save["boids"]:
-        #             boid_o = Boid(
-        #                 name=boid["name"],
-        #                 species=boid["species"],
-        #                 color=boid["color"],
-        #                 x=boid["position"][0],
-        #                 y=boid["position"][1],
-        #                 velocity=Vector2(boid["velocity"][0], boid["velocity"][1]),
-        #                 acceleration=Vector2(
-        #                     boid["acceleration"][0], boid["acceleration"][1]
-        #                 ),
-        #             )
-        #             self.boids.append(boid_o)
-        #             if isinstance(game_state.state["focus"], dict):
-        #                 if (
-        #                     boid["name"] == game_state.state["focus"]["name"]
-        #                     and boid["species"] == game_state.state["focus"]["species"]
-        #                 ):
-        #                     game_state.state["focus"] = boid_o
-
-        #         self.width = int(load_save["world"][0])
-        #         self.height = int(load_save["world"][1])
-
-        # else:
-        #     self.width = width
-        #     self.height = height
-
-        #     self.boids = [
-        #         Boid(name=str(i + 1), x=randint(0, width - 1), y=randint(0, height - 1))
-        #         for i in range(0, boids_count)
-        #     ]
-
-        #     self.game_state.state["boids_count"] = boids_count
-
         # self.grid = SpatialGrid(60)
         # self.grid.rebuild(self.boids)
 
