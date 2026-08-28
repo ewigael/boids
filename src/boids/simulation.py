@@ -276,6 +276,7 @@ class Simulation:
             position_sums[has_neighbors] / nb_count[has_neighbors, None]
             - self.entities.positions[has_neighbors]
         )
+        self.perflog.add("cohesion")
 
         # alignement
         velocities_sums = nb_mask @ self.entities.velocities
@@ -284,18 +285,29 @@ class Simulation:
             velocities_sums[has_neighbors] / nb_count[has_neighbors, None]
             - self.entities.velocities[has_neighbors]
         )
+        self.perflog.add("alignement")
 
         # separation
-        distances = np.sqrt(distance_squared)
-        strength = (
-            (self.entities.sensor_range - distances) / self.entities.sensor_range
+        # distances = np.sqrt(distance_squared)
+
+        neighbor_distances = np.sqrt(distance_squared[nb_mask])
+
+        valid = neighbor_distances > 0
+
+        strength = np.zeros_like(neighbor_distances)
+        strength[valid] = (
+            (self.entities.sensor_range - neighbor_distances[valid])
+            / self.entities.sensor_range
         ) ** 3
-        valid = nb_mask & (distances > 0)
-        strength_over_distance = np.zeros_like(distances)
-        np.divide(strength, distances, out=strength_over_distance, where=valid)
-        contributions = offsets * strength_over_distance[..., None]
-        contributions[~valid] = 0
+        strength_over_distance = np.zeros_like(neighbor_distances)
+        np.divide(strength, neighbor_distances, out=strength_over_distance, where=valid)
+
+        strength_matrix = np.zeros_like(distance_squared)
+        strength_matrix[nb_mask] = strength_over_distance
+
+        contributions = offsets * strength_matrix[..., None]
         separation = np.sum(contributions, axis=1)
+        self.perflog.add("separation")
 
         # control
         if self.gamestate["focus"] is not None:
