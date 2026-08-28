@@ -22,6 +22,7 @@ class Entities:
     max_speed = 150
 
     sensor_range = 60
+    sensor_range_squared = sensor_range**2
 
     def __init__(self, gamestate, count=0, width=0, height=0, load_save=None):
 
@@ -143,47 +144,71 @@ class Entities:
 
 
 class SpatialGrid:
-    def __init__(self, cell_size):
+    def __init__(self, cell_size, width, height):
         self.cell_size = cell_size
         self.cells = {}
+        self.width = width
+        self.height = height
 
-    def get_cell(self, position):
-        x, y = position
-        return (x // self.cell_size, y // self.cell_size)
+        self.cols = int(np.ceil(width / cell_size))
+        self.rows = int(np.ceil(height / cell_size))
 
-    def add(self, boid):
-        cell = self.get_cell(boid.position)
-        if cell not in self.cells:
-            self.cells[cell] = []
-        self.cells[cell].append(boid)
+        self.cells = [[] for _ in range(self.cols * self.rows)]
 
-    def rebuild(self, boids):
-        self.cells.clear()
-        for b in boids:
-            self.add(b)
+    def cell_index(self, position):
+        x = int(position[0] // self.cell_size)
+        y = int(position[1] // self.cell_size)
 
-    def get_local_agents(self, target, search_range=1):
-        """Return a list of all agents in neighboring cells, searching a square of size search_range * 2 + 1"""
-        agents = []
-        cell_x, cell_y = self.get_cell(target)
+        return y * self.cols + x
 
-        for dx in range(-search_range, search_range + 1):
-            for dy in range(-search_range, search_range + 1):
-                cell = (cell_x + dx, cell_y + dy)
-                if cell in self.cells:
-                    agents.extend(self.cells[cell])
+    def rebuild(self, entities):
+        for cell in self.cells:
+            cell.clear()
 
-        return agents
+        for bid, position in enumerate(entities.positions):
+            index = self.cell_index(position)
+            self.cells[index].append(bid)
 
-    def iter_local_agents(self, target, search_range=1):
-        """Iterative version of get_local_agents"""
-        cell_x, cell_y = self.get_cell(target)
+    def get_neighbor_cells(self, cell_index):
+        x = cell_index % self.cols
+        y = cell_index // self.cols
 
-        for dx in range(-search_range, search_range + 1):
-            for dy in range(-search_range, search_range + 1):
-                cell = (cell_x + dx, cell_y + dy)
-                if cell in self.cells:
-                    yield from self.cells[cell]
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                nx = x + dy
+                ny = y + dy
+
+                if 0 <= nx < self.cols and 0 <= ny < self.rows:
+                    yield ny * self.cols + nx
+
+    def get_candidate_pairs(self):
+        sources = []
+        targets = []
+
+        for ci, cell in enumerate(self.cells):
+            # going through all cells
+
+            # this cell's pairs
+            for i in range(len(cell)):
+                for j in range(i + 1, len(cell)):
+                    a = cell[i]
+                    b = cell[j]
+
+                    sources.extend([a, b])
+                    targets.extend([b, a])
+
+            # neighbor cells pairs
+            for ni in self.get_neighbor_cells(ci):
+                if ni <= ci:
+                    continue
+
+                neighbors = self.cells[ni]
+                for a in cell:
+                    for b in neighbors:
+                        sources.extend([a, b])
+                        targets.extend([b, a])
+
+        return np.array(sources, dtype=np.intp), np.array(targets, dtype=np.intp)
 
 
 class Simulation:
@@ -204,8 +229,8 @@ class Simulation:
             self.width = width
             self.height = height
 
-        # self.grid = SpatialGrid(60)
-        # self.grid.rebuild(self.boids)
+        self.grid = SpatialGrid(60, self.width, self.height)
+        self.grid.rebuild(self.entities)
 
         self.perflog = PerfLogger("Simulation", avgs_step=0.5)
 
@@ -249,19 +274,31 @@ class Simulation:
 
         self.perflog.start()
 
-        # TODO: grid rebuild
+        # GET CANDITATES ####
+
+        self.grid.rebuild(self.entities)
+        candidates_sources, candidates_targets = self.grid.get_candidate_pairs()
+        self.perflog.add("grid_rebuild")
 
         # GET NEIGHBORS ####
         offsets = (
-            self.entities.positions[:, None, :] - self.entities.positions[None, :, :]
+            self.entities.positions[candidates_sources]
+            - self.entities.positions[candidates_targets]
         )
-        distance_squared = np.sum(offsets**2, axis=2)
+        distance_squared = np.sum(offsets**2, axis=1)
+        valid = distance_squared < self.entities.sensor_range_squared
 
-        nb_mask = distance_squared < self.entities.sensor_range**2
-        np.fill_diagonal(nb_mask, False)
+        sources = candidates_sources[valid]
+        targets = candidates_targets[valid]
+        offsets = offsets[valid]
+        distance_squared = distance_squared[valid]
 
-        nb_count = nb_mask.sum(axis=1)
-        self.nb_mask = nb_mask
+        pairs = set(zip(sources, targets))
+
+        nb_count = np.bincount(
+            sources,
+            minlength=self.entities.count,
+        )
 
         self.perflog.add("get_neighbors")
 
@@ -270,7 +307,9 @@ class Simulation:
         has_neighbors = nb_count > 0
 
         # cohesion
-        position_sums = nb_mask @ self.entities.positions
+        position_sums = np.zeros_like(self.entities.positions)
+        np.add.at(position_sums, sources, self.entities.positions[targets])
+
         cohesion = np.zeros_like(self.entities.positions)
         cohesion[has_neighbors] = (
             position_sums[has_neighbors] / nb_count[has_neighbors, None]
@@ -279,7 +318,9 @@ class Simulation:
         self.perflog.add("cohesion")
 
         # alignement
-        velocities_sums = nb_mask @ self.entities.velocities
+        velocities_sums = np.zeros_like(self.entities.velocities)
+        np.add.at(velocities_sums, sources, self.entities.velocities[targets])
+
         alignement = np.zeros_like(self.entities.positions)
         alignement[has_neighbors] = (
             velocities_sums[has_neighbors] / nb_count[has_neighbors, None]
@@ -288,25 +329,21 @@ class Simulation:
         self.perflog.add("alignement")
 
         # separation
-        # distances = np.sqrt(distance_squared)
+        distances = np.sqrt(distance_squared)
 
-        neighbor_distances = np.sqrt(distance_squared[nb_mask])
+        valid = distances > 0
 
-        valid = neighbor_distances > 0
-
-        strength = np.zeros_like(neighbor_distances)
+        strength = np.zeros_like(distances)
         strength[valid] = (
-            (self.entities.sensor_range - neighbor_distances[valid])
-            / self.entities.sensor_range
+            (self.entities.sensor_range - distances[valid]) / self.entities.sensor_range
         ) ** 3
-        strength_over_distance = np.zeros_like(neighbor_distances)
-        np.divide(strength, neighbor_distances, out=strength_over_distance, where=valid)
+        strength_over_distance = np.zeros_like(distances)
+        np.divide(strength, distances, out=strength_over_distance, where=valid)
 
-        strength_matrix = np.zeros_like(distance_squared)
-        strength_matrix[nb_mask] = strength_over_distance
+        contributions = offsets * strength_over_distance[:, None]
 
-        offsets *= strength_matrix[..., None]
-        separation = np.sum(offsets, axis=1)
+        separation = np.zeros_like(self.entities.positions)
+        np.add.at(separation, sources, contributions)
         self.perflog.add("separation")
 
         # control
