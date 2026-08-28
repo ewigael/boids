@@ -25,7 +25,7 @@ class Entities:
 
     def __init__(self, gamestate, count=0, width=0, height=0, load_save=None):
 
-        species_color = "#AA712F"
+        self.species_color = "#AA712F"
         self.gamestate = gamestate
 
         if not gamestate["quiet"]:
@@ -34,6 +34,9 @@ class Entities:
         if load_save:
             self.load_from_save(load_save)
             return
+
+        self.width = width
+        self.height = height
 
         self.count = count
         self.gamestate["boids_count"] = count
@@ -54,7 +57,7 @@ class Entities:
         )
         self.speeds = np.linalg.norm(self.velocities, axis=1)
         self.accelerations = np.zeros((count, 2), dtype=np.float32)
-        self.colors = [small_change_hex(species_color) for _ in range(0, count)]
+        self.colors = [small_change_hex(self.species_color) for _ in range(0, count)]
 
     def update_all(self, dt):
         """Update all entities, taking advantage of numpy"""
@@ -79,6 +82,40 @@ class Entities:
         self.positions += self.velocities * dt
         self.speeds = np.linalg.norm(self.velocities, axis=1)
 
+    def add(self, n):
+        for _ in range(0, n):
+            self.positions = np.vstack(
+                [
+                    self.positions,
+                    np.random.randint(0, [self.width, self.height], size=(1, 2)).astype(
+                        np.float32
+                    ),
+                ]
+            )
+            self.velocities = np.vstack(
+                [
+                    self.velocities,
+                    np.random.randint(0, [self.width, self.height], size=(1, 2)).astype(
+                        np.float32
+                    ),
+                ]
+            )
+            self.accelerations = np.vstack([self.accelerations, np.zeros(2)])
+            self.colors.append(small_change_hex(self.species_color))
+
+            self.count += 1
+        self.gamestate["boids_count"] = self.count
+
+    def remove(self, n):
+        for _ in range(0, n):
+            self.positions = np.delete(self.positions, -1, axis=0)
+            self.velocities = np.delete(self.velocities, -1, axis=0)
+            self.accelerations = np.delete(self.accelerations, -1, axis=0)
+            self.colors.pop()
+
+            self.count -= 1
+        self.gamestate["boids_count"] = self.count
+
     def to_list(self):
         """Returns a list version of Entities data, to be used for serialization"""
         return {
@@ -91,6 +128,8 @@ class Entities:
         }
 
     def load_from_save(self, load_save):
+        self.width = load_save["world"]["width"]
+        self.height = load_save["world"]["height"]
         self.count = load_save["entities"]["count"]
         self.positions = np.array(load_save["entities"]["positions"], dtype=np.float32)
         self.velocities = np.array(

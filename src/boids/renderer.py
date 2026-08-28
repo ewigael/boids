@@ -455,20 +455,9 @@ class Renderer:
         # SPAWN ######
         # TODO: move this to be handled by the simulation?
         if self.gamestate["boids_add"]:
-            boidname = str(len(self.simulation.boids) + 2)
-            self.simulation.boids.append(
-                Boid(
-                    name=boidname,
-                    x=randint(0, self.simulation.width - 1),
-                    y=randint(0, self.simulation.height - 1),
-                )
-            )
-            self.gamestate["boids_count"] += 1
+            self.simulation.entities.add(1)
         if self.gamestate["boids_rem"]:
-            if self.gamestate["boids_count"] > 0:
-                if self.gamestate["focus"] == self.simulation.boids.pop():
-                    self.gamestate["focus"] = None
-                self.gamestate["boids_count"] -= 1
+            self.simulation.entities.remove(1)
 
     def draw(self, fps):
         """Read game state to know what and how to draw it"""
