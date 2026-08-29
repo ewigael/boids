@@ -87,6 +87,12 @@ class SpatialGrid:
                 sources.append(np.concatenate([a, b]))
                 targets.append(np.concatenate([b, a]))
 
+        if not sources:
+            return (
+                np.empty(0, dtype=np.intp),
+                np.empty(0, dtype=np.intp),
+            )
+
         return (
             np.concatenate(sources),
             np.concatenate(targets),

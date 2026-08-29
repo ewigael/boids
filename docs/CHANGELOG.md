@@ -19,6 +19,10 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 
 ### Fixed
 
+## [2.1.1]
+
+- Grid wont crash if no neighbor pairs are found (happens when there are very few entities)
+
 ## [2.1.0] - Config file!
 
 ### Added
