@@ -570,7 +570,6 @@ class Renderer:
             self.draw_state()
 
         self.pl_draw.add("show state")
-        self.pl_draw.add("tail")
 
         pygame.display.flip()
 
