@@ -10,22 +10,13 @@ from pathlib import Path
 from perflogger import PerfLogger
 
 from . import print_metadata
-from .config import config
-
+from .config import config as conf
 from .inputs import InputManager
 from .gamestate import GameState
 from .simulation import Simulation
 from .renderer import Renderer
 
 WIN_TITLE = "Boids by Akasha"
-
-SCREEN_WIDTH = 1920
-SCREEN_HEIGHT = 1080
-
-BACKGROUND = "#0C0C0E"
-
-WORLD_WIDTH = 1920
-WORLD_HEIGHT = 1080
 
 BOID_COUNT = 200
 
@@ -76,10 +67,15 @@ def main(quiet, load_save, config, record_data_to_file):
     inputs = InputManager(gamestate)
 
     simulation = Simulation(
-        gamestate, WORLD_WIDTH, WORLD_HEIGHT, BOID_COUNT, load_save=load_save
+        gamestate, conf.world.width, conf.world.height, BOID_COUNT, load_save=load_save
     )
     renderer = Renderer(
-        gamestate, simulation, SCREEN_WIDTH, SCREEN_HEIGHT, WIN_TITLE, BACKGROUND
+        gamestate,
+        simulation,
+        conf.display.width,
+        conf.display.height,
+        WIN_TITLE,
+        conf.display.background,
     )
 
     clock = pygame.time.Clock()

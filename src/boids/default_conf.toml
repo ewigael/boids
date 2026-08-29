@@ -1,0 +1,11 @@
+[display]
+width = 1920
+height = 1080
+background = "#0C0C0E"
+
+[world]
+width = 1920
+height = 1080
+
+# [tmp]
+# config.world.height

@@ -4,6 +4,7 @@ import numpy as np
 
 from perflogger import PerfLogger
 
+from .config import config
 from .grid import SpatialGrid
 from .entities import Entities
 from .neighbors import NeighborsData
@@ -19,15 +20,11 @@ class Simulation:
         self.gamestate = game_state.state
 
         if load_save:
-            self.width = int(load_save["world"][0])
-            self.height = int(load_save["world"][1])
             self.entities = Entities(self.gamestate, load_save=load_save)
         else:
             self.entities = Entities(self.gamestate, boids_count, width, height)
-            self.width = width
-            self.height = height
 
-        self.grid = SpatialGrid(60, self.width, self.height)
+        self.grid = SpatialGrid(60, config.world.width, config.world.height)
         self.grid.rebuild(self.entities)
 
         self.neighbors = NeighborsData(self.entities)
@@ -126,4 +123,4 @@ class Simulation:
         self.wrap_entities()
 
     def wrap_entities(self):
-        self.entities.positions %= np.array([(self.width, self.height)])
+        self.entities.positions %= np.array([(config.world.width, config.world.height)])

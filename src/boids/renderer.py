@@ -5,6 +5,8 @@ import json
 
 from perflogger import PerfLogger
 
+from .config import config
+
 from .vector2 import Vector2
 from .colors import value_to_color_gradient_linear, value_to_color_gradient_log
 
@@ -177,11 +179,12 @@ class Renderer:
             16,
         )
 
+        # TODO: get that from conf
         self.camera = Camera(
-            world_width=simulation.width,
-            world_height=simulation.height,
-            screen_width=self.width,
-            screen_height=self.height,
+            world_width=config.world.width,
+            world_height=config.world.height,
+            screen_width=config.display.width,
+            screen_height=config.display.height,
         )
 
         self.pl_draw = PerfLogger("Renderer-Draw")
@@ -591,7 +594,7 @@ class Renderer:
                 )
                 for k, v in self.gamestate.items()
             },
-            "world": (self.simulation.width, self.simulation.height),
+            "world": (config.world.width, config.world.height),
             "entities": self.simulation.entities.to_list(),
         }
 
