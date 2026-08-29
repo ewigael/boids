@@ -10,6 +10,8 @@ from pathlib import Path
 from perflogger import PerfLogger
 
 from . import print_metadata
+from .config import config
+
 from .inputs import InputManager
 from .gamestate import GameState
 from .simulation import Simulation
@@ -43,8 +45,14 @@ BOID_COUNT = 200
     type=click.Path(exists=True, path_type=Path),
     help="Load a .boids save file, loads game state and simulation state",
 )
+@click.option(
+    "-c",
+    "--config",
+    type=click.Path(exists=True, path_type=Path),
+    help="Load a user conf file (see boids/default_conf.toml for syntax)",
+)
 @click.option("-r", "--record-data-to-file", type=click.Path(), default=None)
-def main(quiet, load_save, record_data_to_file):
+def main(quiet, load_save, config, record_data_to_file):
     if not quiet:
         print_metadata(pygame)
 
@@ -81,6 +89,7 @@ def main(quiet, load_save, record_data_to_file):
         dt = clock.tick(60) / 1000.0
 
         perflog.start()
+
         inputs.update()
         perflog.add("inputs update")
         gamestate.update(inputs)
