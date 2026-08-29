@@ -18,11 +18,10 @@ class Camera:
     def __init__(
         self,
         position=None,
-        speed=1000,
-        zoom=None,
     ):
         """position refers to the simulation's world coordinates"""
-        self.speed = speed
+
+        self.speed = config.camera.speed
 
         if position:
             self.position = position
@@ -31,10 +30,7 @@ class Camera:
             self.center_on_world()
 
         self.min_zoom = self.get_min_zoom()
-        if zoom:
-            self.zoom = zoom
-        else:
-            self.zoom = self.min_zoom
+        self.zoom = max(self.min_zoom, config.camera.zoom)
 
     def clamp_position(self):
         """Forces the camera's position to adapt to screen size for zooming out"""
