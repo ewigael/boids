@@ -51,7 +51,7 @@ class GameState:
             # Renderer
             self.state["focus_on"] = None
             self.state["focus"] = None
-            self.state["show_debug"] = "fps_cam_perf"
+            self.state["show_debug"] = "fps"
 
         # General
         self.state["quit"] = False
