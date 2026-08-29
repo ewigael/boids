@@ -14,8 +14,6 @@ from .colors import small_change_hex
 
 class Entities:
 
-    # TODO: Add speed table, would aboid resqrting everything for drawing
-
     initial_speed = 100
 
     min_speed = 70
@@ -26,11 +24,13 @@ class Entities:
 
     def __init__(self, gamestate, count=0, width=0, height=0, load_save=None):
 
-        self.species_color = "#AA712F"
+        # self.species_color = "#F0C580"  # gold
+        # self.species_color = "#FF00EE"  # super pink
+        self.species_color = "#F080E9"  # pink
         self.gamestate = gamestate
 
         if not gamestate["quiet"]:
-            print(f"> generating entities ({count})")
+            print(f"> Generating entities ({count})")
 
         if load_save:
             self.load_from_save(load_save)

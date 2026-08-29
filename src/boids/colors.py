@@ -35,7 +35,7 @@ def small_change_hex(hex_color):
     saturation = max(0.0, min(1.0, saturation))
     lightness = max(0.0, min(1.0, lightness))
 
-    return hls_to_hex(hue, saturation, lightness)
+    return hls_to_hex(hue, lightness, saturation)
 
 
 def value_to_color_gradient_log(
