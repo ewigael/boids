@@ -92,6 +92,7 @@ class Entities:
                     ).astype(np.float32),
                 ]
             )
+            self.speeds = np.append(self.speeds, np.linalg.norm(self.velocities[-1]))
             self.accelerations = np.vstack([self.accelerations, np.zeros(2)])
             self.colors.append(small_change_hex(self.species_color))
 
@@ -102,6 +103,7 @@ class Entities:
         for _ in range(0, n):
             self.positions = np.delete(self.positions, -1, axis=0)
             self.velocities = np.delete(self.velocities, -1, axis=0)
+            self.speeds = np.delete(self.speeds, -1, axis=0)
             self.accelerations = np.delete(self.accelerations, -1, axis=0)
             self.colors.pop()
 

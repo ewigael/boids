@@ -37,6 +37,8 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 
 ### Fixed
 
+- add/remove work again
+
 ## [2.0.0]
 
 ### Changed
