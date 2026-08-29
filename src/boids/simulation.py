@@ -92,6 +92,7 @@ class Simulation:
         separation, cohesion, alignement = sep_ali_coh_numpy(
             self.entities, self.neighbors
         )
+        self.entities.accelerations += separation * 100 + alignement * 1.5 + cohesion
 
         # control
         if self.gamestate["focus"] is not None:
@@ -107,8 +108,6 @@ class Simulation:
             if self.gamestate["focus_boid_go_slower"]:
                 force -= self.entities.velocities[bid] * 1.1
             self.entities.accelerations[bid] += force
-
-        self.entities.accelerations += separation * 100 + alignement * 1.5 + cohesion
 
         self.perflog.add("calc forces")
 
