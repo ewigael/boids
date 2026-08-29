@@ -190,30 +190,41 @@ class Renderer:
     def draw_vector(self, origin, vector, color):
         """Draw a given vector as a color colored arrow with origin as origin"""
 
-        if vector.length() == 0:
+        vx, vy = vector
+        length = (vx * vx + vy * vy) ** 0.5
+
+        if length == 0:
             return
 
-        end = origin + vector
+        ox, oy = origin
 
-        direction = vector.normalize()
-        perpendicular = Vector2(-direction.y, direction.x)
+        dir_x = vx / length
+        dir_y = vy / length
+
+        end_x = ox + vx
+        end_y = oy + vy
+
+        perp_x = -dir_y
+        perp_y = dir_x
 
         head_length = 6
         head_width = 2
 
-        left = end - direction * head_length + perpendicular * head_width
-        right = end - direction * head_length - perpendicular * head_width
+        left_x = end_x - dir_x * head_length + perp_x * head_width
+        left_y = end_y - dir_y * head_length + perp_y * head_width
+        right_x = end_x - dir_x * head_length - perp_x * head_width
+        right_y = end_y - dir_y * head_length - perp_y * head_width
 
-        start_screen = self.camera.world_to_screen(origin)
-        end_screen = self.camera.world_to_screen(end)
-        left_screen = self.camera.world_to_screen(left)
-        right_screen = self.camera.world_to_screen(right)
+        start_screen = self.camera.world_to_screen_tuple(origin)
+        end_screen = self.camera.world_to_screen_tuple((end_x, end_y))
+        left_screen = self.camera.world_to_screen_tuple((left_x, left_y))
+        right_screen = self.camera.world_to_screen_tuple((right_x, right_y))
 
         pygame.draw.aaline(
             self.screen,
             color,
-            (int(start_screen.x), int(start_screen.y)),
-            (int(end_screen.x), int(end_screen.y)),
+            (int(start_screen[0]), int(start_screen[1])),
+            (int(end_screen[0]), int(end_screen[1])),
             2,
         )
 
@@ -221,9 +232,9 @@ class Renderer:
             self.screen,
             color,
             [
-                (int(end_screen.x), int(end_screen.y)),
-                (int(left_screen.x), int(left_screen.y)),
-                (int(right_screen.x), int(right_screen.y)),
+                (int(end_screen[0]), int(end_screen[1])),
+                (int(left_screen[0]), int(left_screen[1])),
+                (int(right_screen[0]), int(right_screen[1])),
             ],
         )
 
@@ -389,6 +400,9 @@ class Renderer:
                     (int(nx), int(ny)),
                     2,
                 )
+
+            # Direction vector
+            self.draw_vector(position, velocity, "#FFDE4B")
 
         # Draw boid body
         tip = position + direction * 12
