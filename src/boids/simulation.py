@@ -14,7 +14,7 @@ from .behaviors import sep_ali_coh_numpy, avoid_boundary
 
 class Simulation:
 
-    def __init__(self, game_state, width, height, boids_count, load_save=None):
+    def __init__(self, game_state, boids_count, load_save=None):
         if not game_state.state["quiet"]:
             print("Initialising Simulation...")
         self.gamestate = game_state.state
@@ -22,7 +22,9 @@ class Simulation:
         if load_save:
             self.entities = Entities(self.gamestate, load_save=load_save)
         else:
-            self.entities = Entities(self.gamestate, boids_count, width, height)
+            self.entities = Entities(
+                self.gamestate, boids_count, config.world.width, config.world.height
+            )
 
         self.grid = SpatialGrid(60, config.world.width, config.world.height)
         self.grid.rebuild(self.entities)

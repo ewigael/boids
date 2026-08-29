@@ -16,8 +16,6 @@ from .gamestate import GameState
 from .simulation import Simulation
 from .renderer import Renderer
 
-WIN_TITLE = "Boids by Akasha"
-
 BOID_COUNT = 200
 
 
@@ -66,16 +64,10 @@ def main(quiet, load_save, config, record_data_to_file):
     gamestate.state["data_output_path"] = data_output_path
     inputs = InputManager(gamestate)
 
-    simulation = Simulation(
-        gamestate, conf.world.width, conf.world.height, BOID_COUNT, load_save=load_save
-    )
+    simulation = Simulation(gamestate, BOID_COUNT, load_save=load_save)
     renderer = Renderer(
         gamestate,
         simulation,
-        conf.display.width,
-        conf.display.height,
-        WIN_TITLE,
-        conf.display.background,
     )
 
     clock = pygame.time.Clock()

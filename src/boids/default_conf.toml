@@ -2,10 +2,8 @@
 width = 1920
 height = 1080
 background = "#0C0C0E"
+title = "Boids by Akasha"
 
 [world]
 width = 1920
 height = 1080
-
-# [tmp]
-# config.world.height
