@@ -2,6 +2,7 @@ import pygame
 import numpy as np
 from pathlib import Path
 import json
+import os
 
 from perflogger import PerfLogger
 
@@ -10,7 +11,6 @@ from .config import config
 from .vector2 import Vector2
 from .colors import value_to_color_gradient_linear, value_to_color_gradient_log
 
-SAVE_STATE_FILE = Path("./saves/save.boids")
 DEBUG_CYCLE = [None, "fps", "fps_cam", "fps_cam_perf"]
 
 
@@ -556,8 +556,11 @@ class Renderer:
 
         pygame.display.flip()
 
-    def save_state(self, dest=SAVE_STATE_FILE, force_write=False):
+    def save_state(
+        self, dest=Path(os.path.expandvars(config.saves.default)), force_write=False
+    ):
         or_stem = dest.stem
+        dest = dest.expanduser()
         dest.parent.mkdir(parents=True, exist_ok=True)
 
         i = 1

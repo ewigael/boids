@@ -7,3 +7,6 @@ title = "Boids by Akasha"
 [world]
 width = 1920
 height = 1080
+
+[saves]
+default = "$HOME/Documents/boids/save.boids"
