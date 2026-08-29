@@ -14,6 +14,11 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 ### Added
 
 - Press z to toggle if boids avoid world boudaries or just go through (default)
+- `-c` `--config` cli option to load user configuration
+- autoload configuration, program will look up and overlay conf files in that order:
+  - `boids/default_conf.toml` (mandatory) -> exhaustive configurables, look there for conf examples
+  - `~/.config/boids/config.toml` (mandatory) -> exhaustive configurables, look there for conf examples
+  - file passed through `-c`
 
 ### Changed
 
