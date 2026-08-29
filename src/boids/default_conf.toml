@@ -13,10 +13,12 @@ default = "$HOME/Documents/boids/save.boids"
 
 [behaviors.boundary]
 strength = 400
+exp_factor = 2
 margin = 200
 
 [behaviors.separation]
-strength = 100
+strength = 300
+exp_factor = 2
 
 [behaviors.alignment]
 strength = 1.5

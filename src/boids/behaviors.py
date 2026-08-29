@@ -9,19 +9,26 @@ from .vector2 import Vector2
 def avoid_boundary(entities):
     force = np.zeros_like(entities.positions)
     margin = config.behaviors.boundary.margin
+    exp_factor = config.behaviors.boundary.exp_factor
+    world_width = config.world.width
+    world_height = config.world.height
 
     x = entities.positions[:, 0]
     y = entities.positions[:, 1]
 
     too_left = x < margin
-    too_right = x > entities.width - margin
+    too_right = x > world_width - margin
     too_up = y < margin
-    too_down = y > entities.height - margin
+    too_down = y > world_height - margin
 
-    force[too_left, 0] = ((margin - x[too_left]) / margin) ** 2
-    force[too_right, 0] = -(((x[too_right] - (entities.width - margin)) / margin) ** 2)
-    force[too_up, 1] = ((margin - y[too_up]) / margin) ** 2
-    force[too_down, 1] = -(((y[too_down] - (entities.height - margin)) / margin) ** 2)
+    force[too_left, 0] = ((margin - x[too_left]) / margin) ** exp_factor
+    force[too_right, 0] = -(
+        ((x[too_right] - (world_width - margin)) / margin) ** exp_factor
+    )
+    force[too_up, 1] = ((margin - y[too_up]) / margin) ** exp_factor
+    force[too_down, 1] = -(
+        ((y[too_down] - (world_height - margin)) / margin) ** exp_factor
+    )
 
     return force * config.behaviors.boundary.strength
 
@@ -60,7 +67,7 @@ def sep_ali_coh_numpy(entities, neighbors):
     strength = np.zeros_like(distances)
     strength[valid] = (
         (entities.sensor_range - distances[valid]) / entities.sensor_range
-    ) ** 3
+    ) ** config.behaviors.separation.exp_factor
     strength_over_distance = np.zeros_like(distances)
     np.divide(strength, distances, out=strength_over_distance, where=valid)
 
