@@ -50,6 +50,19 @@ def main(quiet, load_save, config, record_data_to_file):
     else:
         data_output_path = None
 
+    load_data = None
+    if load_save:
+        if not quiet:
+            print(f"Loading save file: {load_save}")
+
+        with open(load_save, "r") as save_file:
+            load_data = json.load(save_file)
+
+    if load_data:
+        if not quiet:
+            print(f"Overlaying config from savefile: {load_save}")
+        conf.overlay_data(load_data["config"])
+
     user_config = Path(os.path.expandvars(conf.general.config)).expanduser()
     if user_config.exists():
         if not quiet:
@@ -61,21 +74,15 @@ def main(quiet, load_save, config, record_data_to_file):
             print(f"Overlaying config from: {config}")
         conf.overlay(config)
 
-    if load_save:
-        if not quiet:
-            print(f"Loading save file: {load_save}")
-        with open(load_save, "r") as save_file:
-            load_save = json.load(save_file)
-
     pygame.init()
 
     perflog = PerfLogger("main", output_file_path=data_output_path)
 
-    gamestate = GameState(quiet, load_save)
+    gamestate = GameState(quiet, load_data)
     gamestate.state["data_output_path"] = data_output_path
     inputs = InputManager(gamestate)
 
-    simulation = Simulation(gamestate, BOID_COUNT, load_save=load_save)
+    simulation = Simulation(gamestate, BOID_COUNT, load_save=load_data)
     renderer = Renderer(
         gamestate,
         simulation,

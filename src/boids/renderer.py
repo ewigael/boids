@@ -576,6 +576,7 @@ class Renderer:
             },
             "world": (config.world.width, config.world.height),
             "entities": self.simulation.entities.to_list(),
+            "config": config.asdict(),
         }
 
         with open(dest, "w") as file:
