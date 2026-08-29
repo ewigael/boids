@@ -13,6 +13,16 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 
 ### Added
 
+### Changed
+
+### Removed
+
+### Fixed
+
+## [2.1.0] - Config file!
+
+### Added
+
 - Press z to toggle if boids avoid world boudaries or just go through (default)
 - `-c` `--config` cli option to load user configuration
 - autoload configuration, program will look up and overlay conf files in that order:
@@ -45,7 +55,7 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 
 - add/remove work again
 
-## [2.0.0]
+## [2.0.0] - Numpy!
 
 ### Changed
 
