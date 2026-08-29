@@ -10,7 +10,7 @@ class GenericSubConfig:
     def __init__(self, data):
         for k, v in data.items():
             if isinstance(v, dict):
-                v = SubConfig(v)
+                v = GenericSubConfig(v)
             setattr(self, k, v)
 
 
