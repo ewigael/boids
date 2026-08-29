@@ -2,6 +2,7 @@
 
 import numpy as np
 
+from .config import config
 from .colors import small_change_hex
 
 
@@ -15,7 +16,7 @@ class Entities:
     sensor_range = 60
     sensor_range_squared = sensor_range**2
 
-    def __init__(self, gamestate, count=0, width=0, height=0, load_save=None):
+    def __init__(self, gamestate, count=0, load_save=None):
 
         # self.species_color = "#F0C580"  # gold
         # self.species_color = "#FF00EE"  # super pink
@@ -29,15 +30,12 @@ class Entities:
             self.load_from_save(load_save)
             return
 
-        self.width = width
-        self.height = height
-
         self.count = count
         self.gamestate["boids_count"] = count
 
-        self.positions = np.random.randint(0, [width, height], size=(count, 2)).astype(
-            np.float32
-        )
+        self.positions = np.random.randint(
+            0, [config.world.width, config.world.height], size=(count, 2)
+        ).astype(np.float32)
 
         angles = np.random.uniform(0, 2 * np.pi, size=count)
         self.velocities = (
@@ -81,17 +79,17 @@ class Entities:
             self.positions = np.vstack(
                 [
                     self.positions,
-                    np.random.randint(0, [self.width, self.height], size=(1, 2)).astype(
-                        np.float32
-                    ),
+                    np.random.randint(
+                        0, [config.world.width, config.world.height], size=(1, 2)
+                    ).astype(np.float32),
                 ]
             )
             self.velocities = np.vstack(
                 [
                     self.velocities,
-                    np.random.randint(0, [self.width, self.height], size=(1, 2)).astype(
-                        np.float32
-                    ),
+                    np.random.randint(
+                        0, [config.world.width, config.world.height], size=(1, 2)
+                    ).astype(np.float32),
                 ]
             )
             self.accelerations = np.vstack([self.accelerations, np.zeros(2)])
@@ -122,8 +120,6 @@ class Entities:
         }
 
     def load_from_save(self, load_save):
-        self.width = load_save["world"]["width"]
-        self.height = load_save["world"]["height"]
         self.count = load_save["entities"]["count"]
         self.positions = np.array(load_save["entities"]["positions"], dtype=np.float32)
         self.velocities = np.array(

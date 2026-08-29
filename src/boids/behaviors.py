@@ -1,36 +1,36 @@
 """Behaviors here implemented as functions taking a boid and it's neighbors and returning a Vector2 force"""
 
-from .vector2 import Vector2
 import numpy as np
 
-MAX_ALIGNMENT = 10
-
-SEPARATION_STR = 100
-ALIGNEMENT_STR = 1.5
-COHESION_STR = 2
-
-AVOID_BOUNDARY_STR = 400
-AVOID_BOUNDARY_MARGIN = 200
+from .config import config
+from .vector2 import Vector2
 
 
 def avoid_boundary(entities):
     force = np.zeros_like(entities.positions)
-    margin = AVOID_BOUNDARY_MARGIN
+    margin = config.behaviors.boundary.margin
+    exp_factor = config.behaviors.boundary.exp_factor
+    world_width = config.world.width
+    world_height = config.world.height
 
     x = entities.positions[:, 0]
     y = entities.positions[:, 1]
 
     too_left = x < margin
-    too_right = x > entities.width - margin
+    too_right = x > world_width - margin
     too_up = y < margin
-    too_down = y > entities.height - margin
+    too_down = y > world_height - margin
 
-    force[too_left, 0] = ((margin - x[too_left]) / margin) ** 2
-    force[too_right, 0] = -(((x[too_right] - (entities.width - margin)) / margin) ** 2)
-    force[too_up, 1] = ((margin - y[too_up]) / margin) ** 2
-    force[too_down, 1] = -(((y[too_down] - (entities.height - margin)) / margin) ** 2)
+    force[too_left, 0] = ((margin - x[too_left]) / margin) ** exp_factor
+    force[too_right, 0] = -(
+        ((x[too_right] - (world_width - margin)) / margin) ** exp_factor
+    )
+    force[too_up, 1] = ((margin - y[too_up]) / margin) ** exp_factor
+    force[too_down, 1] = -(
+        ((y[too_down] - (world_height - margin)) / margin) ** exp_factor
+    )
 
-    return force * AVOID_BOUNDARY_STR
+    return force * config.behaviors.boundary.strength
 
 
 def sep_ali_coh_numpy(entities, neighbors):
@@ -47,14 +47,14 @@ def sep_ali_coh_numpy(entities, neighbors):
         - entities.positions[has_neighbors]
     )
 
-    # alignement
+    # alignment
     velocities_sums = np.zeros_like(entities.velocities)
     np.add.at(
         velocities_sums, neighbors.sources, entities.velocities[neighbors.targets]
     )
 
-    alignement = np.zeros_like(entities.positions)
-    alignement[has_neighbors] = (
+    alignment = np.zeros_like(entities.positions)
+    alignment[has_neighbors] = (
         velocities_sums[has_neighbors] / neighbors.nb_count[has_neighbors, None]
         - entities.velocities[has_neighbors]
     )
@@ -67,7 +67,7 @@ def sep_ali_coh_numpy(entities, neighbors):
     strength = np.zeros_like(distances)
     strength[valid] = (
         (entities.sensor_range - distances[valid]) / entities.sensor_range
-    ) ** 3
+    ) ** config.behaviors.separation.exp_factor
     strength_over_distance = np.zeros_like(distances)
     np.divide(strength, distances, out=strength_over_distance, where=valid)
 
@@ -77,7 +77,7 @@ def sep_ali_coh_numpy(entities, neighbors):
     np.add.at(separation, neighbors.sources, contributions)
 
     return (
-        separation * SEPARATION_STR,
-        cohesion * COHESION_STR,
-        alignement * ALIGNEMENT_STR,
+        separation * config.behaviors.separation.strength,
+        cohesion * config.behaviors.cohesion.strength,
+        alignment * config.behaviors.alignment.strength,
     )

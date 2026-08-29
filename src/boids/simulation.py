@@ -4,6 +4,7 @@ import numpy as np
 
 from perflogger import PerfLogger
 
+from .config import config
 from .grid import SpatialGrid
 from .entities import Entities
 from .neighbors import NeighborsData
@@ -13,21 +14,17 @@ from .behaviors import sep_ali_coh_numpy, avoid_boundary
 
 class Simulation:
 
-    def __init__(self, game_state, width, height, boids_count, load_save=None):
+    def __init__(self, game_state, boids_count, load_save=None):
         if not game_state.state["quiet"]:
             print("Initialising Simulation...")
         self.gamestate = game_state.state
 
         if load_save:
-            self.width = int(load_save["world"][0])
-            self.height = int(load_save["world"][1])
             self.entities = Entities(self.gamestate, load_save=load_save)
         else:
-            self.entities = Entities(self.gamestate, boids_count, width, height)
-            self.width = width
-            self.height = height
+            self.entities = Entities(self.gamestate, boids_count)
 
-        self.grid = SpatialGrid(60, self.width, self.height)
+        self.grid = SpatialGrid(cell_size=60)
         self.grid.rebuild(self.entities)
 
         self.neighbors = NeighborsData(self.entities)
@@ -90,10 +87,10 @@ class Simulation:
         # FORCES ####
 
         # Flocking
-        separation, cohesion, alignement = sep_ali_coh_numpy(
+        separation, cohesion, alignment = sep_ali_coh_numpy(
             self.entities, self.neighbors
         )
-        self.entities.accelerations += separation + alignement + cohesion
+        self.entities.accelerations += separation + alignment + cohesion
         self.perflog.add("calc sep ali coh")
 
         # Avoid boundary
@@ -126,4 +123,4 @@ class Simulation:
         self.wrap_entities()
 
     def wrap_entities(self):
-        self.entities.positions %= np.array([(self.width, self.height)])
+        self.entities.positions %= np.array([(config.world.width, config.world.height)])

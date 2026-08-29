@@ -1,0 +1,27 @@
+[display]
+width = 1920
+height = 1080
+background = "#0C0C0E"
+title = "Boids by Akasha"
+
+[world]
+width = 1920
+height = 1080
+
+[saves]
+default = "$HOME/Documents/boids/save.boids"
+
+[behaviors.boundary]
+strength = 400
+exp_factor = 2
+margin = 200
+
+[behaviors.separation]
+strength = 300
+exp_factor = 2
+
+[behaviors.alignment]
+strength = 1.5
+
+[behaviors.cohesion]
+strength = 2
