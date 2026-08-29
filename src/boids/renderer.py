@@ -130,10 +130,24 @@ class Camera:
 
     def screen_to_world_tuple(self, screen_position):
         spos_x, spos_y = screen_position
+        cpos_x, cpos_y = self.position.astuple()
 
         return (
-            (spos_x - self.screen_width / 2) / self.zoom + self.position.x,
-            (spos_y - self.screen_height / 2) / self.zoom + self.position.y,
+            (spos_x - self.screen_width / 2) / self.zoom + cpos_x,
+            (spos_y - self.screen_height / 2) / self.zoom + cpos_y,
+        )
+
+    @property
+    def world_bounds(self):
+        posx, posy = self.position.astuple()
+        w_width = self.screen_width / (2 * self.zoom)
+        w_height = self.screen_height / (2 * self.zoom)
+
+        return (
+            posx - w_width,  # left
+            posx + w_width,  # right
+            posy - w_height,  # top
+            posy + w_height,  # bottom
         )
 
 
@@ -310,6 +324,22 @@ class Renderer:
             y = i * line_height + margin
 
             self.screen.blit(text, (x, y))
+
+    def draw_entities(self):
+
+        left, right, top, bottom = self.camera.world_bounds
+        positions = self.simulation.entities.positions
+        eligible_mask = (
+            (positions[:, 0] >= left)
+            & (positions[:, 0] <= right)
+            & (positions[:, 1] >= top)
+            & (positions[:, 1] <= bottom)
+        )
+
+        eligible_ids = np.flatnonzero(eligible_mask)
+        print(eligible_ids.shape)
+        for bid in eligible_ids:
+            self.draw_entity(bid)
 
     def draw_entity(self, bid):
 
@@ -507,8 +537,7 @@ class Renderer:
 
         self.pl_draw.add("focusing")
 
-        for bid in range(0, self.simulation.entities.count):
-            self.draw_entity(bid)
+        self.draw_entities()
 
         self.pl_draw.add("drawing boids")
 
