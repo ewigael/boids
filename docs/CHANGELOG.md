@@ -15,6 +15,9 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 
 ### Changed
 
+- Moved classes to their own files for clarity
+- Removed old behaviors and rewrite avoid_boundary to work with numpy
+
 ### Removed
 
 ### Fixed
