@@ -58,16 +58,16 @@ def main(quiet, load_save, config, record_data_to_file):
         with open(load_save, "r") as save_file:
             load_data = json.load(save_file)
 
-    if load_data:
-        if not quiet:
-            print(f"Overlaying config from savefile: {load_save}")
-        conf.overlay_data(load_data["config"])
-
     user_config = Path(os.path.expandvars(conf.general.config)).expanduser()
     if user_config.exists():
         if not quiet:
             print(f"Overlaying config from: {user_config}")
         conf.overlay(user_config)
+
+    if load_data:
+        if not quiet:
+            print(f"Overlaying config from savefile: {load_save}")
+        conf.overlay_data(load_data["config"])
 
     if config:
         if not quiet:

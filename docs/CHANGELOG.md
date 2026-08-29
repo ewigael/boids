@@ -18,6 +18,7 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 - autoload configuration, program will look up and overlay conf files in that order:
   - `boids/default_conf.toml` (mandatory) -> exhaustive configurables, look there for conf examples
   - `~/.config/boids/config.toml` (mandatory) -> exhaustive configurables, look there for conf examples
+  - data loaded from a savefile with `-l`
   - file passed through `-c`
 
 ### Changed

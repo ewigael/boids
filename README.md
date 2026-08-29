@@ -55,6 +55,7 @@ I just love monitoring. It was interesting creating both the thing and the thing
 The program will lookup and overlay configuration files in this order:
 - `boids/default_conf.toml` (mandatory) -> exhaustive configurables, look there for conf examples
 - `~/.config/boids/config.toml`
+- data loaded from a save file with `-l`
 - file passed through `-c`
 
 see `boids/config.py` to add your own configuration subclasses
