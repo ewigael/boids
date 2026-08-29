@@ -8,7 +8,7 @@ from .grid import SpatialGrid
 from .entities import Entities
 from .neighbors import NeighborsData
 
-from .behaviors import sep_ali_coh_numpy
+from .behaviors import sep_ali_coh_numpy, avoid_boundary
 
 
 class Simulation:
@@ -89,12 +89,18 @@ class Simulation:
 
         # FORCES ####
 
+        # Flocking
         separation, cohesion, alignement = sep_ali_coh_numpy(
             self.entities, self.neighbors
         )
-        self.entities.accelerations += separation * 100 + alignement * 1.5 + cohesion
+        self.entities.accelerations += separation + alignement + cohesion
+        self.perflog.add("calc sep ali coh")
 
-        # control
+        # Avoid boundary
+        self.entities.accelerations += avoid_boundary(self.entities)
+        self.perflog.add("calc avoid boundary")
+
+        # Control
         if self.gamestate["focus"] is not None:
             bid = self.gamestate["focus"]
             force = np.zeros(2)
@@ -109,7 +115,7 @@ class Simulation:
                 force -= self.entities.velocities[bid] * 1.1
             self.entities.accelerations[bid] += force
 
-        self.perflog.add("calc forces")
+        self.perflog.add("calc control")
 
         # UPDATE
         self.entities.update_all(dt)

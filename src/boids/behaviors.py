@@ -9,23 +9,28 @@ SEPARATION_STR = 100
 ALIGNEMENT_STR = 1.5
 COHESION_STR = 2
 
-AVOID_BOUNDARY_STR = 200
+AVOID_BOUNDARY_STR = 400
+AVOID_BOUNDARY_MARGIN = 200
 
 
-def avoid_boundary(boid, world_width, world_height):
-    force_x = force_y = 0
-    margin = 100
+def avoid_boundary(entities):
+    force = np.zeros_like(entities.positions)
+    margin = AVOID_BOUNDARY_MARGIN
 
-    if boid.position.x < margin:
-        force_x = (margin - boid.position.x) / margin
-    elif boid.position.x > world_width - margin:
-        force_x = -(boid.position.x - (world_width - margin)) / margin
-    if boid.position.y < margin:
-        force_y = (margin - boid.position.y) / margin
-    elif boid.position.y > world_height - margin:
-        force_y = -(boid.position.y - (world_height - margin)) / margin
+    x = entities.positions[:, 0]
+    y = entities.positions[:, 1]
 
-    return Vector2(force_x, force_y) * AVOID_BOUNDARY_STR
+    too_left = x < margin
+    too_right = x > entities.width - margin
+    too_up = y < margin
+    too_down = y > entities.height - margin
+
+    force[too_left, 0] = ((margin - x[too_left]) / margin) ** 2
+    force[too_right, 0] = -(((x[too_right] - (entities.width - margin)) / margin) ** 2)
+    force[too_up, 1] = ((margin - y[too_up]) / margin) ** 2
+    force[too_down, 1] = -(((y[too_down] - (entities.height - margin)) / margin) ** 2)
+
+    return force * AVOID_BOUNDARY_STR
 
 
 def sep_ali_coh_numpy(entities, neighbors):
@@ -71,4 +76,8 @@ def sep_ali_coh_numpy(entities, neighbors):
     separation = np.zeros_like(entities.positions)
     np.add.at(separation, neighbors.sources, contributions)
 
-    return separation, cohesion, alignement
+    return (
+        separation * SEPARATION_STR,
+        cohesion * COHESION_STR,
+        alignement * ALIGNEMENT_STR,
+    )
