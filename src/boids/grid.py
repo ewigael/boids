@@ -2,18 +2,17 @@
 
 import numpy as np
 
+from .config import config
+
 
 class SpatialGrid:
-    def __init__(self, cell_size, width, height):
+    def __init__(self, cell_size):
         self.cell_size = cell_size
-        self.cells = {}
-        self.width = width
-        self.height = height
 
-        self.cols = int(np.ceil(width / cell_size))
-        self.rows = int(np.ceil(height / cell_size))
-
-        self.cells = [[] for _ in range(self.cols * self.rows)]
+        # Grid's columns and rows are defined at start,
+        # redimensionning the world at runtime would fail at this point
+        self.cols = int(np.ceil(config.world.width / cell_size))
+        self.rows = int(np.ceil(config.world.height / cell_size))
 
     def cell_index(self, position):
         x = int(position[0] // self.cell_size)

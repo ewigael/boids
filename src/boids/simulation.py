@@ -22,11 +22,9 @@ class Simulation:
         if load_save:
             self.entities = Entities(self.gamestate, load_save=load_save)
         else:
-            self.entities = Entities(
-                self.gamestate, boids_count, config.world.width, config.world.height
-            )
+            self.entities = Entities(self.gamestate, boids_count)
 
-        self.grid = SpatialGrid(60, config.world.width, config.world.height)
+        self.grid = SpatialGrid(cell_size=60)
         self.grid.rebuild(self.entities)
 
         self.neighbors = NeighborsData(self.entities)
