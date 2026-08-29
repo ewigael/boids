@@ -1,13 +1,12 @@
 import pygame
+import numpy as np
 from pathlib import Path
 import json
-import numpy as np
+
+from perflogger import PerfLogger
 
 from .vector2 import Vector2
-from perflogger import PerfLogger
 from .colors import value_to_color_gradient_linear, value_to_color_gradient_log
-from .boid import Boid
-from random import randint
 
 SAVE_STATE_FILE = Path("./saves/save.boids")
 DEBUG_CYCLE = [None, "fps", "fps_cam", "fps_cam_perf"]
