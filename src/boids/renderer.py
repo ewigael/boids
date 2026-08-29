@@ -557,7 +557,7 @@ class Renderer:
         pygame.display.flip()
 
     def save_state(
-        self, dest=Path(os.path.expandvars(config.saves.default)), force_write=False
+        self, dest=Path(os.path.expandvars(config.general.saves)), force_write=False
     ):
         or_stem = dest.stem
         dest = dest.expanduser()

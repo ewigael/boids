@@ -1,3 +1,7 @@
+[general]
+config = "$HOME/.config/boids/config.toml"
+saves = "$HOME/Documents/boids/save.boids"
+
 [display]
 width = 1920
 height = 1080
@@ -7,9 +11,6 @@ title = "Boids by Akasha"
 [world]
 width = 1920
 height = 1080
-
-[saves]
-default = "$HOME/Documents/boids/save.boids"
 
 [behaviors.boundary]
 strength = 400

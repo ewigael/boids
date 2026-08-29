@@ -50,6 +50,17 @@ def main(quiet, load_save, config, record_data_to_file):
     else:
         data_output_path = None
 
+    user_config = Path(os.path.expandvars(conf.general.config)).expanduser()
+    if user_config.exists():
+        if not quiet:
+            print(f"Overlaying config from: {user_config}")
+        conf.overlay(user_config)
+
+    if config:
+        if not quiet:
+            print(f"Overlaying config from: {config}")
+        conf.overlay(config)
+
     if load_save:
         if not quiet:
             print(f"Loading save file: {load_save}")
