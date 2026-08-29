@@ -6,7 +6,7 @@ import numpy as np
 from perflogger import PerfLogger
 
 from .boid import Boid
-from .behaviors import flock, avoid_boundary, forces_numpy
+from .behaviors import sep_ali_coh_numpy
 from .vector2 import Vector2
 
 from .colors import small_change_hex
@@ -350,7 +350,9 @@ class Simulation:
 
         # FORCES ####
 
-        separation, cohesion, alignement = forces_numpy(self.entities, self.neighbors)
+        separation, cohesion, alignement = sep_ali_coh_numpy(
+            self.entities, self.neighbors
+        )
 
         # control
         if self.gamestate["focus"] is not None:
