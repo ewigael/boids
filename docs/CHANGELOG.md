@@ -19,8 +19,8 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 
 - Moved classes to their own files for clarity
 - Removed old behaviors and rewrite avoid_boundary to work with numpy
-- New config class!!
-- Moved globals to config (see below)
+- New config class!! Configuration is now loaded from a toml file and stored in a module-wise exposed class
+- Moved globals to config class (see below)
 
 #### `config.display`
   - screen dimensions
