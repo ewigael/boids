@@ -40,6 +40,26 @@ New behaviors appearing spontaneously from seemingly simple or unrelated rules i
 
 Boids algorithms are used to simulate bird flocks, schools of fish, [waddles of penguins](https://en.wiktionary.org/wiki/Appendix:English_collective_nouns#The_main_list)... But also enemy AI in video games or even drones
 
+## Why
+
+I realise this is a remarkably beginner-like portfolio project.
+
+I spent a carreer making APIs, web services, scripts and other stuff. I wanted to make something I can see.
+
+I hadn't made a simulation or visual rendering in years and it feels good to tweak this, making things "the right way" just for the sake of it, writing documentation nobody will read...
+
+I just love monitoring. It was interesting creating both the thing and the thing monitoring the thing.
+
+## Configuration
+
+The program will lookup and overlay configuration files in this order:
+- `boids/default_conf.toml` (mandatory) -> exhaustive configurables, look there for conf examples
+- `~/.config/boids/config.toml`
+- data loaded from a save file with `-l`
+- file passed through `-c`
+
+see `boids/config.py` to add your own configuration subclasses
+
 ## Change logs
 
 Find unreleased features and version updates in the [Changelog](docs/CHANGELOG.md)

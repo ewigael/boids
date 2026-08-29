@@ -19,7 +19,43 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 
 ### Fixed
 
-## [2.0.0]
+## [2.1.0] - Config file!
+
+### Added
+
+- Press z to toggle if boids avoid world boudaries or just go through (default)
+- `-c` `--config` cli option to load user configuration
+- autoload configuration, program will look up and overlay conf files in that order:
+  - `boids/default_conf.toml` (mandatory) -> exhaustive configurables, look there for conf examples
+  - `~/.config/boids/config.toml` (mandatory) -> exhaustive configurables, look there for conf examples
+  - data loaded from a savefile with `-l`
+  - file passed through `-c`
+
+### Changed
+
+- Moved classes to their own files for clarity
+- Removed old behaviors and rewrite avoid_boundary to work with numpy
+- New config class!! Configuration is now loaded from a toml file and stored in a module-wise exposed class
+- Moved globals to config class (see below)
+
+#### `config.display`
+  - screen dimensions
+  - background color
+  - window title
+
+#### `config.world`
+  - world dimensions
+
+#### `config.behaviors.x`
+  - strength and other constants
+
+### Removed
+
+### Fixed
+
+- add/remove work again
+
+## [2.0.0] - Numpy!
 
 ### Changed
 

@@ -1,36 +1,27 @@
 import pygame
+import numpy as np
 from pathlib import Path
 import json
-import numpy as np
+import os
+
+from perflogger import PerfLogger
+
+from .config import config
 
 from .vector2 import Vector2
-from perflogger import PerfLogger
 from .colors import value_to_color_gradient_linear, value_to_color_gradient_log
-from .boid import Boid
-from random import randint
 
-SAVE_STATE_FILE = Path("./saves/save.boids")
 DEBUG_CYCLE = [None, "fps", "fps_cam", "fps_cam_perf"]
 
 
 class Camera:
     def __init__(
         self,
-        world_width,
-        world_height,
-        screen_width,
-        screen_height,
         position=None,
-        speed=1000,
-        zoom=None,
     ):
         """position refers to the simulation's world coordinates"""
-        self.speed = speed
 
-        self.world_width = world_width
-        self.world_height = world_height
-        self.screen_width = screen_width
-        self.screen_height = screen_height
+        self.speed = config.camera.speed
 
         if position:
             self.position = position
@@ -39,33 +30,31 @@ class Camera:
             self.center_on_world()
 
         self.min_zoom = self.get_min_zoom()
-        if zoom:
-            self.zoom = zoom
-        else:
-            self.zoom = self.min_zoom
+        self.zoom = max(self.min_zoom, config.camera.zoom)
 
     def clamp_position(self):
         """Forces the camera's position to adapt to screen size for zooming out"""
-        half_width = self.screen_width / (2 * self.zoom)
-        half_height = self.screen_height / (2 * self.zoom)
+        half_width = config.display.width / (2 * self.zoom)
+        half_height = config.display.height / (2 * self.zoom)
 
         min_x = half_width
-        max_x = self.world_width - half_width
+        max_x = config.world.width - half_width
 
         min_y = half_height
-        max_y = self.world_height - half_height
+        max_y = config.world.height - half_height
 
         self.position.x = max(min_x, min(self.position.x, max_x))
         self.position.y = max(min_y, min(self.position.y, max_y))
 
     def get_min_zoom(self):
         return max(
-            self.screen_width / self.world_width, self.screen_height / self.world_height
+            config.display.width / config.world.width,
+            config.display.height / config.world.height,
         )
 
     def set_screen_size(self, new_w, new_h):
-        self.screen_width = new_w
-        self.screen_height = new_h
+        config.display.width = new_w
+        config.display.height = new_h
 
         self.min_zoom = self.get_min_zoom()
         self.set_zoom(self.zoom)
@@ -95,15 +84,15 @@ class Camera:
         self.clamp_position()
 
     def center_on_world(self):
-        self.position.x = self.world_width / 2
-        self.position.y = self.world_height / 2
+        self.position.x = config.world.width / 2
+        self.position.y = config.world.height / 2
 
     def world_to_screen(self, world_position):
         relative = world_position - self.position
 
         return Vector2(
-            relative.x * self.zoom + self.screen_width / 2,
-            relative.y * self.zoom + self.screen_height / 2,
+            relative.x * self.zoom + config.display.width / 2,
+            relative.y * self.zoom + config.display.height / 2,
         )
 
     def screen_to_world(self, screen_position):
@@ -113,8 +102,8 @@ class Camera:
             spos_x, spos_y = screen_position
 
         return Vector2(
-            (spos_x - self.screen_width / 2) / self.zoom + self.position.x,
-            (spos_y - self.screen_height / 2) / self.zoom + self.position.y,
+            (spos_x - config.display.width / 2) / self.zoom + self.position.x,
+            (spos_y - config.display.height / 2) / self.zoom + self.position.y,
         )
 
     def world_to_screen_tuple(self, world_position):
@@ -124,8 +113,8 @@ class Camera:
         )
 
         return (
-            relative[0] * self.zoom + self.screen_width / 2,
-            relative[1] * self.zoom + self.screen_height / 2,
+            relative[0] * self.zoom + config.display.width / 2,
+            relative[1] * self.zoom + config.display.height / 2,
         )
 
     def screen_to_world_tuple(self, screen_position):
@@ -133,15 +122,15 @@ class Camera:
         cpos_x, cpos_y = self.position.astuple()
 
         return (
-            (spos_x - self.screen_width / 2) / self.zoom + cpos_x,
-            (spos_y - self.screen_height / 2) / self.zoom + cpos_y,
+            (spos_x - config.display.width / 2) / self.zoom + cpos_x,
+            (spos_y - config.display.height / 2) / self.zoom + cpos_y,
         )
 
     @property
     def world_bounds(self):
         posx, posy = self.position.astuple()
-        w_width = self.screen_width / (2 * self.zoom)
-        w_height = self.screen_height / (2 * self.zoom)
+        w_width = config.display.width / (2 * self.zoom)
+        w_height = config.display.height / (2 * self.zoom)
 
         return (
             posx - w_width,  # left
@@ -156,34 +145,24 @@ class Renderer:
         self,
         gamestate,
         simulation,
-        width=1920,
-        height=1080,
-        win_title="Akashic Renderer",
-        background="#0C0C0E",
     ):
         if not gamestate.state["quiet"]:
             print("Initialising Renderer...")
         self.gamestate = gamestate.state
 
-        self.width = width
-        self.height = height
         self.simulation = simulation
-        self.background = background
 
-        self.screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
-        pygame.display.set_caption(win_title)
+        self.screen = pygame.display.set_mode(
+            (config.display.width, config.display.height), pygame.RESIZABLE
+        )
+        pygame.display.set_caption(config.display.title)
 
         self.font = pygame.font.SysFont(
             ["JetBrains Mono Nerd Font", "JetBrains Mono", "monospace"],
             16,
         )
 
-        self.camera = Camera(
-            world_width=simulation.width,
-            world_height=simulation.height,
-            screen_width=self.width,
-            screen_height=self.height,
-        )
+        self.camera = Camera()
 
         self.pl_draw = PerfLogger("Renderer-Draw")
 
@@ -269,8 +248,8 @@ class Renderer:
 
         for i, (line, color) in enumerate(lines):
             text = self.font.render(line, True, color)
-            x = self.width - text.get_width() - margin
-            y = self.height - (len(lines) - i) * line_height - margin
+            x = config.display.width - text.get_width() - margin
+            y = config.display.height - (len(lines) - i) * line_height - margin
             self.screen.blit(text, (x, y))
 
     def draw_state(self):
@@ -294,7 +273,7 @@ class Renderer:
                 text = self.font.render(f"{line} = {value}", True, "#C4C4C4")
 
             x = margin
-            y = self.height - (full_height - i) * line_height - margin
+            y = config.display.height - (full_height - i) * line_height - margin
 
             self.screen.blit(text, (x, y))
             i += 1
@@ -331,7 +310,7 @@ class Renderer:
                 "#E5D68B",
             )
 
-            x = self.width - text.get_width() - margin
+            x = config.display.width - text.get_width() - margin
             y = i * line_height + margin
 
             self.screen.blit(text, (x, y))
@@ -507,8 +486,8 @@ class Renderer:
         # Resizing
         if self.gamestate["win_resize"]:
             new_w, new_h = self.gamestate["win_resize"]
-            self.width = new_w
-            self.height = new_h
+            config.display.width = new_w
+            config.display.height = new_h
             self.camera.set_screen_size(new_w, new_h)
             self.gamestate["win_resize"] = None
 
@@ -536,7 +515,7 @@ class Renderer:
 
         self.pl_draw.start()
 
-        self.screen.fill(self.background)
+        self.screen.fill(config.display.background)
         self.pl_draw.add("fill")
 
         if self.gamestate["focus_on"]:
@@ -570,12 +549,14 @@ class Renderer:
             self.draw_state()
 
         self.pl_draw.add("show state")
-        self.pl_draw.add("tail")
 
         pygame.display.flip()
 
-    def save_state(self, dest=SAVE_STATE_FILE, force_write=False):
+    def save_state(
+        self, dest=Path(os.path.expandvars(config.general.saves)), force_write=False
+    ):
         or_stem = dest.stem
+        dest = dest.expanduser()
         dest.parent.mkdir(parents=True, exist_ok=True)
 
         i = 1
@@ -593,8 +574,9 @@ class Renderer:
                 )
                 for k, v in self.gamestate.items()
             },
-            "world": (self.simulation.width, self.simulation.height),
+            "world": (config.world.width, config.world.height),
             "entities": self.simulation.entities.to_list(),
+            "config": config.asdict(),
         }
 
         with open(dest, "w") as file:

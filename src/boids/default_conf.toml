@@ -1,0 +1,32 @@
+[general]
+config = "$HOME/.config/boids/config.toml"
+saves = "$HOME/Documents/boids/save.boids"
+
+[display]
+width = 1920
+height = 1080
+background = "#0C0C0E"
+title = "Boids by Akasha"
+
+[camera]
+speed = 1000
+zoom = 0 # zoom <= 0 will set the initial to the minimum
+
+[world]
+width = 2560
+height = 1440
+
+[behaviors.boundary]
+strength = 400
+exp_factor = 2
+margin = 200
+
+[behaviors.separation]
+strength = 300
+exp_factor = 2
+
+[behaviors.alignment]
+strength = 1.5
+
+[behaviors.cohesion]
+strength = 2

@@ -10,20 +10,11 @@ from pathlib import Path
 from perflogger import PerfLogger
 
 from . import print_metadata
+from .config import config as conf
 from .inputs import InputManager
 from .gamestate import GameState
 from .simulation import Simulation
 from .renderer import Renderer
-
-WIN_TITLE = "Boids by Akasha"
-
-SCREEN_WIDTH = 1920
-SCREEN_HEIGHT = 1080
-
-BACKGROUND = "#0C0C0E"
-
-WORLD_WIDTH = 1920
-WORLD_HEIGHT = 1080
 
 BOID_COUNT = 200
 
@@ -43,8 +34,14 @@ BOID_COUNT = 200
     type=click.Path(exists=True, path_type=Path),
     help="Load a .boids save file, loads game state and simulation state",
 )
+@click.option(
+    "-c",
+    "--config",
+    type=click.Path(exists=True, path_type=Path),
+    help="Load a user conf file (see boids/default_conf.toml for syntax)",
+)
 @click.option("-r", "--record-data-to-file", type=click.Path(), default=None)
-def main(quiet, load_save, record_data_to_file):
+def main(quiet, load_save, config, record_data_to_file):
     if not quiet:
         print_metadata(pygame)
 
@@ -53,25 +50,42 @@ def main(quiet, load_save, record_data_to_file):
     else:
         data_output_path = None
 
+    load_data = None
     if load_save:
         if not quiet:
             print(f"Loading save file: {load_save}")
+
         with open(load_save, "r") as save_file:
-            load_save = json.load(save_file)
+            load_data = json.load(save_file)
+
+    user_config = Path(os.path.expandvars(conf.general.config)).expanduser()
+    if user_config.exists():
+        if not quiet:
+            print(f"Overlaying config from: {user_config}")
+        conf.overlay(user_config)
+
+    if load_data:
+        if not quiet:
+            print(f"Overlaying config from savefile: {load_save}")
+        conf.overlay_data(load_data["config"])
+
+    if config:
+        if not quiet:
+            print(f"Overlaying config from: {config}")
+        conf.overlay(config)
 
     pygame.init()
 
     perflog = PerfLogger("main", output_file_path=data_output_path)
 
-    gamestate = GameState(quiet, load_save)
+    gamestate = GameState(quiet, load_data)
     gamestate.state["data_output_path"] = data_output_path
     inputs = InputManager(gamestate)
 
-    simulation = Simulation(
-        gamestate, WORLD_WIDTH, WORLD_HEIGHT, BOID_COUNT, load_save=load_save
-    )
+    simulation = Simulation(gamestate, BOID_COUNT, load_save=load_data)
     renderer = Renderer(
-        gamestate, simulation, SCREEN_WIDTH, SCREEN_HEIGHT, WIN_TITLE, BACKGROUND
+        gamestate,
+        simulation,
     )
 
     clock = pygame.time.Clock()
@@ -81,6 +95,7 @@ def main(quiet, load_save, record_data_to_file):
         dt = clock.tick(60) / 1000.0
 
         perflog.start()
+
         inputs.update()
         perflog.add("inputs update")
         gamestate.update(inputs)
