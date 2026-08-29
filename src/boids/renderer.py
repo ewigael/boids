@@ -171,6 +171,8 @@ class Renderer:
             screen_height=self.height,
         )
 
+        self.pl_draw = PerfLogger("Renderer-Draw")
+
     def draw_vector(self, origin, vector, color):
         """Draw a given vector as a color colored arrow with origin as origin"""
 
@@ -318,7 +320,7 @@ class Renderer:
         screen_pos_x, screen_pos_y = self.camera.world_to_screen_tuple(position)
         velocity = entities.velocities[bid]
 
-        speed = (velocity[0] ** 2 + velocity[1] ** 2) ** 0.5
+        speed = entities.speeds[bid]
         direction = velocity / speed
 
         if focused and self.simulation.neighbors_ready:
@@ -350,9 +352,12 @@ class Renderer:
         # Draw boid body
         tip = position + direction * 12
         back = position - direction * 8
-        perpendicular = np.array([-direction[1], direction[0]])
-        left = back + perpendicular * 6
-        right = back - perpendicular * 6
+
+        perp_x = -direction[1]
+        perp_y = direction[0]
+
+        left = (back[0] + perp_x * 6, back[1] + perp_y * 6)
+        right = (back[0] - perp_x * 6, back[1] - perp_y * 6)
 
         tip = self.camera.world_to_screen_tuple(tip)
         left = self.camera.world_to_screen_tuple(left)
@@ -474,7 +479,10 @@ class Renderer:
     def draw(self, fps):
         """Read game state to know what and how to draw it"""
 
+        self.pl_draw.start()
+
         self.screen.fill(self.background)
+        self.pl_draw.add("fill")
 
         if self.gamestate["focus_on"]:
             self.gamestate["focus"] = self.simulation.find_boid_at(
@@ -487,17 +495,28 @@ class Renderer:
                 *self.simulation.entities.positions[self.gamestate["focus"]]
             )
 
+        self.pl_draw.add("focusing")
+
         for bid in range(0, self.simulation.entities.count):
             self.draw_entity(bid)
+
+        self.pl_draw.add("drawing boids")
 
         if self.gamestate["focus"] is not None:
             self.draw_focused_data(self.gamestate["focus"])
 
+        self.pl_draw.add("focus data")
+
         if self.gamestate["show_debug"]:
             self.draw_debug(self.camera, fps)
 
+        self.pl_draw.add("show debug")
+
         if self.gamestate["show_state"]:
             self.draw_state()
+
+        self.pl_draw.add("show state")
+        self.pl_draw.add("tail")
 
         pygame.display.flip()
 
