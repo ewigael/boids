@@ -106,7 +106,7 @@ class Simulation:
             force = np.zeros(2)
             if self.gamestate["focus_boid_go_direction"] is not None:
                 force += (
-                    self.gamestate["focus_boid_go_direction"] * 2
+                    self.gamestate["focus_boid_go_direction"] * 3.5
                     - self.entities.velocities[bid]
                 )
             if self.gamestate["focus_boid_go_faster"]:
