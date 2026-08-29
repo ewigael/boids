@@ -1,6 +1,6 @@
 [project]
 name = "boids"
-version = "2.1.0"
+version = "2.1.1"
 description = "Python Boids Simulation"
 authors = [
     { name = "Akasha Mouginot", email = "akasha.mouginot@protonmail.com" }
