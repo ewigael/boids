@@ -13,6 +13,8 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 
 ### Added
 
+- Press z to toggle if boids avoid world boudaries or just go through (default)
+
 ### Changed
 
 - Moved classes to their own files for clarity

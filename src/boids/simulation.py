@@ -97,8 +97,9 @@ class Simulation:
         self.perflog.add("calc sep ali coh")
 
         # Avoid boundary
-        self.entities.accelerations += avoid_boundary(self.entities)
-        self.perflog.add("calc avoid boundary")
+        if self.gamestate["boids_avoid_boundary"]:
+            self.entities.accelerations += avoid_boundary(self.entities)
+            self.perflog.add("calc avoid boundary")
 
         # Control
         if self.gamestate["focus"] is not None:
@@ -114,8 +115,7 @@ class Simulation:
             if self.gamestate["focus_boid_go_slower"]:
                 force -= self.entities.velocities[bid] * 1.1
             self.entities.accelerations[bid] += force
-
-        self.perflog.add("calc control")
+            self.perflog.add("calc control")
 
         # UPDATE
         self.entities.update_all(dt)
