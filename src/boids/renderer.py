@@ -325,6 +325,17 @@ class Renderer:
 
         if focused and self.simulation.neighbors_ready:
 
+            # Sensor circle
+            s_range = self.simulation.entities.sensor_range * self.camera.zoom
+            pygame.draw.aacircle(
+                self.screen,
+                "#D3C6B2",
+                (int(screen_pos_x), int(screen_pos_y)),
+                s_range,
+                1,
+            )
+
+            # Candidates lines
             candidates = self.simulation.get_candidates(bid)
             for nib in candidates:
                 nx, ny = self.camera.world_to_screen_tuple(entities.positions[nib])
@@ -336,8 +347,7 @@ class Renderer:
                     1,
                 )
 
-            # TODO: Draw candidates lines
-            # Draw neigbor lines
+            # Neighbor lines
             neighbors = self.simulation.get_neighbors(bid)
             for nib in neighbors:
                 nx, ny = self.camera.world_to_screen_tuple(entities.positions[nib])
