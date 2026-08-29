@@ -326,6 +326,7 @@ class Renderer:
             self.screen.blit(text, (x, y))
 
     def draw_entities(self):
+        """Perform a culling before drawing entities"""
         cull_margin = 25
 
         left, right, top, bottom = self.camera.world_bounds
@@ -362,31 +363,31 @@ class Renderer:
                 "#D3C6B2",
                 (int(screen_pos_x), int(screen_pos_y)),
                 s_range,
-                1,
+                2,
             )
 
             # Candidates lines
             candidates = self.simulation.get_candidates(bid)
             for nib in candidates:
                 nx, ny = self.camera.world_to_screen_tuple(entities.positions[nib])
-                pygame.draw.line(
+                pygame.draw.aaline(
                     self.screen,
                     "#404040",
                     (int(screen_pos_x), int(screen_pos_y)),
                     (int(nx), int(ny)),
-                    1,
+                    2,
                 )
 
             # Neighbor lines
             neighbors = self.simulation.get_neighbors(bid)
             for nib in neighbors:
                 nx, ny = self.camera.world_to_screen_tuple(entities.positions[nib])
-                pygame.draw.line(
+                pygame.draw.aaline(
                     self.screen,
                     "#CBCBCB",
                     (int(screen_pos_x), int(screen_pos_y)),
                     (int(nx), int(ny)),
-                    1,
+                    2,
                 )
 
         # Draw boid body
