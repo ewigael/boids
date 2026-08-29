@@ -295,6 +295,25 @@ class Simulation:
 
         return closest
 
+    def rebuild_neighbors_data(self):
+        offsets = (
+            self.entities.positions[self.candidates_sources]
+            - self.entities.positions[self.candidates_targets]
+        )
+        distance_squared = np.sum(offsets**2, axis=1)
+        valid = distance_squared < self.entities.sensor_range_squared
+
+        self.sources = self.candidates_sources[valid]
+        self.targets = self.candidates_targets[valid]
+
+        self.offsets = offsets[valid]
+        self.distance_squared = distance_squared[valid]
+
+        self.nb_count = np.bincount(
+            self.sources,
+            minlength=self.entities.count,
+        )
+
     def update_entities(self, dt):
 
         if self.gamestate["sim_paused"]:
@@ -312,29 +331,12 @@ class Simulation:
         self.perflog.add("get_candidate_pairs")
 
         # GET NEIGHBORS ####
-        offsets = (
-            self.entities.positions[self.candidates_sources]
-            - self.entities.positions[self.candidates_targets]
-        )
-        distance_squared = np.sum(offsets**2, axis=1)
-        valid = distance_squared < self.entities.sensor_range_squared
-
-        self.sources = self.candidates_sources[valid]
-        self.targets = self.candidates_targets[valid]
-
-        offsets = offsets[valid]
-        distance_squared = distance_squared[valid]
-
-        nb_count = np.bincount(
-            self.sources,
-            minlength=self.entities.count,
-        )
-
-        self.perflog.add("get_neighbors")
+        self.rebuild_neighbors_data()
+        self.perflog.add("rebuild_neighbors")
 
         # FORCES ####
 
-        has_neighbors = nb_count > 0
+        has_neighbors = self.nb_count > 0
 
         # cohesion
         position_sums = np.zeros_like(self.entities.positions)
@@ -342,7 +344,7 @@ class Simulation:
 
         cohesion = np.zeros_like(self.entities.positions)
         cohesion[has_neighbors] = (
-            position_sums[has_neighbors] / nb_count[has_neighbors, None]
+            position_sums[has_neighbors] / self.nb_count[has_neighbors, None]
             - self.entities.positions[has_neighbors]
         )
         self.perflog.add("cohesion")
@@ -353,13 +355,13 @@ class Simulation:
 
         alignement = np.zeros_like(self.entities.positions)
         alignement[has_neighbors] = (
-            velocities_sums[has_neighbors] / nb_count[has_neighbors, None]
+            velocities_sums[has_neighbors] / self.nb_count[has_neighbors, None]
             - self.entities.velocities[has_neighbors]
         )
         self.perflog.add("alignement")
 
         # separation
-        distances = np.sqrt(distance_squared)
+        distances = np.sqrt(self.distance_squared)
 
         valid = distances > 0
 
@@ -370,7 +372,7 @@ class Simulation:
         strength_over_distance = np.zeros_like(distances)
         np.divide(strength, distances, out=strength_over_distance, where=valid)
 
-        contributions = offsets * strength_over_distance[:, None]
+        contributions = self.offsets * strength_over_distance[:, None]
 
         separation = np.zeros_like(self.entities.positions)
         np.add.at(separation, self.sources, contributions)
