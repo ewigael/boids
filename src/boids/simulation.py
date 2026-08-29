@@ -6,7 +6,7 @@ import numpy as np
 from perflogger import PerfLogger
 
 from .boid import Boid
-from .behaviors import flock, avoid_boundary
+from .behaviors import flock, avoid_boundary, forces_numpy
 from .vector2 import Vector2
 
 from .colors import small_change_hex
@@ -234,68 +234,25 @@ class SpatialGrid:
         )
 
 
-class Simulation:
+class NeighborsData:
+    def __init__(self, entities):
 
-    def __init__(self, game_state, width, height, boids_count, load_save=None):
-        if not game_state.state["quiet"]:
-            print("Initialising Simulation...")
-        self.gamestate = game_state.state
+        self.entities = entities
 
         self.nb_mask = None
+        self.sources = None
+        self.targets = None
+        self.candidates_sources = None
+        self.candidates_targets = None
+        self.offsets = None
+        self.distance_squared = None
+        self.nb_count = None
 
-        if load_save:
-            self.width = int(load_save["world"][0])
-            self.height = int(load_save["world"][1])
-            self.entities = Entities(self.gamestate, load_save=load_save)
-        else:
-            self.entities = Entities(self.gamestate, boids_count, width, height)
-            self.width = width
-            self.height = height
+    def rebuild(self, candidates_sources, candidates_targets):
 
-        self.grid = SpatialGrid(60, self.width, self.height)
-        self.grid.rebuild(self.entities)
+        self.candidates_sources = candidates_sources
+        self.candidates_targets = candidates_targets
 
-        self.sources = self.targets = self.candidates_sources = (
-            self.candidates_targets
-        ) = None
-        self.perflog = PerfLogger("Simulation", avgs_step=0.5)
-
-    @property
-    def neighbors_ready(self):
-        return all(
-            x is not None
-            for x in (
-                self.candidates_sources,
-                self.candidates_targets,
-                self.sources,
-                self.targets,
-            )
-        )
-
-    def get_candidates(self, bid):
-        candidate_mask = self.candidates_sources == bid
-        return self.candidates_targets[candidate_mask].tolist()
-
-    def get_neighbors(self, bid):
-        neighbor_mask = self.sources == bid
-        return self.targets[neighbor_mask].tolist()
-
-    def find_boid_at(self, target, _range=20):
-        """Find the closest boid to target within range"""
-
-        delta = self.entities.positions - target
-        distance_squared = np.sum(delta**2, axis=1)
-        within_range = distance_squared < _range**2
-
-        if not np.any(within_range):
-            return None
-
-        candidates = np.where(within_range)[0]
-        closest = candidates[np.argmin(distance_squared[within_range])]
-
-        return closest
-
-    def rebuild_neighbors_data(self):
         offsets = (
             self.entities.positions[self.candidates_sources]
             - self.entities.positions[self.candidates_targets]
@@ -314,6 +271,65 @@ class Simulation:
             minlength=self.entities.count,
         )
 
+
+class Simulation:
+
+    def __init__(self, game_state, width, height, boids_count, load_save=None):
+        if not game_state.state["quiet"]:
+            print("Initialising Simulation...")
+        self.gamestate = game_state.state
+
+        if load_save:
+            self.width = int(load_save["world"][0])
+            self.height = int(load_save["world"][1])
+            self.entities = Entities(self.gamestate, load_save=load_save)
+        else:
+            self.entities = Entities(self.gamestate, boids_count, width, height)
+            self.width = width
+            self.height = height
+
+        self.grid = SpatialGrid(60, self.width, self.height)
+        self.grid.rebuild(self.entities)
+
+        self.neighbors = NeighborsData(self.entities)
+
+        self.perflog = PerfLogger("Simulation", avgs_step=0.5)
+
+    @property
+    def neighbors_ready(self):
+        return all(
+            x is not None
+            for x in (
+                self.neighbors.candidates_sources,
+                self.neighbors.candidates_targets,
+                self.neighbors.sources,
+                self.neighbors.targets,
+            )
+        )
+
+    def get_candidates(self, bid):
+        candidate_mask = self.neighbors.candidates_sources == bid
+        return self.neighbors.candidates_targets[candidate_mask].tolist()
+
+    def get_neighbors(self, bid):
+        neighbor_mask = self.neighbors.sources == bid
+        return self.neighbors.targets[neighbor_mask].tolist()
+
+    def find_boid_at(self, target, _range=20):
+        """Find the closest boid to target within range"""
+
+        delta = self.entities.positions - target
+        distance_squared = np.sum(delta**2, axis=1)
+        within_range = distance_squared < _range**2
+
+        if not np.any(within_range):
+            return None
+
+        candidates = np.where(within_range)[0]
+        closest = candidates[np.argmin(distance_squared[within_range])]
+
+        return closest
+
     def update_entities(self, dt):
 
         if self.gamestate["sim_paused"]:
@@ -325,58 +341,16 @@ class Simulation:
 
         self.grid.rebuild(self.entities)
         self.perflog.add("grid_rebuild")
-        self.candidates_sources, self.candidates_targets = (
-            self.grid.get_candidate_pairs()
-        )
+        candidates_sources, candidates_targets = self.grid.get_candidate_pairs()
         self.perflog.add("get_candidate_pairs")
 
         # GET NEIGHBORS ####
-        self.rebuild_neighbors_data()
+        self.neighbors.rebuild(candidates_sources, candidates_targets)
         self.perflog.add("rebuild_neighbors")
 
         # FORCES ####
 
-        has_neighbors = self.nb_count > 0
-
-        # cohesion
-        position_sums = np.zeros_like(self.entities.positions)
-        np.add.at(position_sums, self.sources, self.entities.positions[self.targets])
-
-        cohesion = np.zeros_like(self.entities.positions)
-        cohesion[has_neighbors] = (
-            position_sums[has_neighbors] / self.nb_count[has_neighbors, None]
-            - self.entities.positions[has_neighbors]
-        )
-        self.perflog.add("cohesion")
-
-        # alignement
-        velocities_sums = np.zeros_like(self.entities.velocities)
-        np.add.at(velocities_sums, self.sources, self.entities.velocities[self.targets])
-
-        alignement = np.zeros_like(self.entities.positions)
-        alignement[has_neighbors] = (
-            velocities_sums[has_neighbors] / self.nb_count[has_neighbors, None]
-            - self.entities.velocities[has_neighbors]
-        )
-        self.perflog.add("alignement")
-
-        # separation
-        distances = np.sqrt(self.distance_squared)
-
-        valid = distances > 0
-
-        strength = np.zeros_like(distances)
-        strength[valid] = (
-            (self.entities.sensor_range - distances[valid]) / self.entities.sensor_range
-        ) ** 3
-        strength_over_distance = np.zeros_like(distances)
-        np.divide(strength, distances, out=strength_over_distance, where=valid)
-
-        contributions = self.offsets * strength_over_distance[:, None]
-
-        separation = np.zeros_like(self.entities.positions)
-        np.add.at(separation, self.sources, contributions)
-        self.perflog.add("separation")
+        separation, cohesion, alignement = forces_numpy(self.entities, self.neighbors)
 
         # control
         if self.gamestate["focus"] is not None:
