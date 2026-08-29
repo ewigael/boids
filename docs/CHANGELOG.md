@@ -15,6 +15,9 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 
 ### Changed
 
+- Simulation now uses NumPy to store and manipulate entities, making processing a bit quicker. Some areas could be better.
+- Renderer now culls out of camera bounds entities
+
 ### Removed
 
 ### Fixed
