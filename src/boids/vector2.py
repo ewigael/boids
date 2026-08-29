@@ -61,3 +61,6 @@ class Vector2:
         if length == 0:
             return Vector2(0, 0)
         return Vector2(self.x / length, self.y / length)
+
+    def astuple(self):
+        return (self.x, self.y)

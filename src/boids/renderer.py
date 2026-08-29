@@ -130,10 +130,24 @@ class Camera:
 
     def screen_to_world_tuple(self, screen_position):
         spos_x, spos_y = screen_position
+        cpos_x, cpos_y = self.position.astuple()
 
         return (
-            (spos_x - self.screen_width / 2) / self.zoom + self.position.x,
-            (spos_y - self.screen_height / 2) / self.zoom + self.position.y,
+            (spos_x - self.screen_width / 2) / self.zoom + cpos_x,
+            (spos_y - self.screen_height / 2) / self.zoom + cpos_y,
+        )
+
+    @property
+    def world_bounds(self):
+        posx, posy = self.position.astuple()
+        w_width = self.screen_width / (2 * self.zoom)
+        w_height = self.screen_height / (2 * self.zoom)
+
+        return (
+            posx - w_width,  # left
+            posx + w_width,  # right
+            posy - w_height,  # top
+            posy + w_height,  # bottom
         )
 
 
@@ -170,6 +184,8 @@ class Renderer:
             screen_width=self.width,
             screen_height=self.height,
         )
+
+        self.pl_draw = PerfLogger("Renderer-Draw")
 
     def draw_vector(self, origin, vector, color):
         """Draw a given vector as a color colored arrow with origin as origin"""
@@ -309,6 +325,23 @@ class Renderer:
 
             self.screen.blit(text, (x, y))
 
+    def draw_entities(self):
+        """Perform a culling before drawing entities"""
+        cull_margin = 25
+
+        left, right, top, bottom = self.camera.world_bounds
+        positions = self.simulation.entities.positions
+        eligible_mask = (
+            (positions[:, 0] >= left - cull_margin)
+            & (positions[:, 0] <= right + cull_margin)
+            & (positions[:, 1] >= top - cull_margin)
+            & (positions[:, 1] <= bottom + cull_margin)
+        )
+
+        eligible_ids = np.flatnonzero(eligible_mask)
+        for bid in eligible_ids:
+            self.draw_entity(bid)
+
     def draw_entity(self, bid):
 
         entities = self.simulation.entities
@@ -318,41 +351,54 @@ class Renderer:
         screen_pos_x, screen_pos_y = self.camera.world_to_screen_tuple(position)
         velocity = entities.velocities[bid]
 
-        speed = (velocity[0] ** 2 + velocity[1] ** 2) ** 0.5
+        speed = entities.speeds[bid]
         direction = velocity / speed
 
         if focused and self.simulation.neighbors_ready:
 
+            # Sensor circle
+            s_range = self.simulation.entities.sensor_range * self.camera.zoom
+            pygame.draw.aacircle(
+                self.screen,
+                "#D3C6B2",
+                (int(screen_pos_x), int(screen_pos_y)),
+                s_range,
+                2,
+            )
+
+            # Candidates lines
             candidates = self.simulation.get_candidates(bid)
             for nib in candidates:
                 nx, ny = self.camera.world_to_screen_tuple(entities.positions[nib])
-                pygame.draw.line(
+                pygame.draw.aaline(
                     self.screen,
                     "#404040",
                     (int(screen_pos_x), int(screen_pos_y)),
                     (int(nx), int(ny)),
-                    1,
+                    2,
                 )
 
-            # TODO: Draw candidates lines
-            # Draw neigbor lines
+            # Neighbor lines
             neighbors = self.simulation.get_neighbors(bid)
             for nib in neighbors:
                 nx, ny = self.camera.world_to_screen_tuple(entities.positions[nib])
-                pygame.draw.line(
+                pygame.draw.aaline(
                     self.screen,
                     "#CBCBCB",
                     (int(screen_pos_x), int(screen_pos_y)),
                     (int(nx), int(ny)),
-                    1,
+                    2,
                 )
 
         # Draw boid body
         tip = position + direction * 12
         back = position - direction * 8
-        perpendicular = np.array([-direction[1], direction[0]])
-        left = back + perpendicular * 6
-        right = back - perpendicular * 6
+
+        perp_x = -direction[1]
+        perp_y = direction[0]
+
+        left = (back[0] + perp_x * 6, back[1] + perp_y * 6)
+        right = (back[0] - perp_x * 6, back[1] - perp_y * 6)
 
         tip = self.camera.world_to_screen_tuple(tip)
         left = self.camera.world_to_screen_tuple(left)
@@ -474,7 +520,10 @@ class Renderer:
     def draw(self, fps):
         """Read game state to know what and how to draw it"""
 
+        self.pl_draw.start()
+
         self.screen.fill(self.background)
+        self.pl_draw.add("fill")
 
         if self.gamestate["focus_on"]:
             self.gamestate["focus"] = self.simulation.find_boid_at(
@@ -487,17 +536,27 @@ class Renderer:
                 *self.simulation.entities.positions[self.gamestate["focus"]]
             )
 
-        for bid in range(0, self.simulation.entities.count):
-            self.draw_entity(bid)
+        self.pl_draw.add("focusing")
+
+        self.draw_entities()
+
+        self.pl_draw.add("drawing boids")
 
         if self.gamestate["focus"] is not None:
             self.draw_focused_data(self.gamestate["focus"])
 
+        self.pl_draw.add("focus data")
+
         if self.gamestate["show_debug"]:
             self.draw_debug(self.camera, fps)
 
+        self.pl_draw.add("show debug")
+
         if self.gamestate["show_state"]:
             self.draw_state()
+
+        self.pl_draw.add("show state")
+        self.pl_draw.add("tail")
 
         pygame.display.flip()
 
