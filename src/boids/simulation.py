@@ -87,10 +87,10 @@ class Simulation:
         # FORCES ####
 
         # Flocking
-        separation, cohesion, alignement = sep_ali_coh_numpy(
+        separation, cohesion, alignment = sep_ali_coh_numpy(
             self.entities, self.neighbors
         )
-        self.entities.accelerations += separation + alignement + cohesion
+        self.entities.accelerations += separation + alignment + cohesion
         self.perflog.add("calc sep ali coh")
 
         # Avoid boundary

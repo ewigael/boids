@@ -30,6 +30,9 @@ and this programmer does her best to follow [Conventional Commits](https://www.c
 #### `config.world`
   - world dimensions
 
+#### `config.behaviors.x`
+  - strength and other constants
+
 ### Removed
 
 ### Fixed

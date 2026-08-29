@@ -10,3 +10,16 @@ height = 1080
 
 [saves]
 default = "$HOME/Documents/boids/save.boids"
+
+[behaviors.boundary]
+strength = 400
+margin = 200
+
+[behaviors.separation]
+strength = 100
+
+[behaviors.alignment]
+strength = 1.5
+
+[behaviors.cohesion]
+strength = 2
