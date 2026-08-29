@@ -326,18 +326,18 @@ class Renderer:
             self.screen.blit(text, (x, y))
 
     def draw_entities(self):
+        cull_margin = 25
 
         left, right, top, bottom = self.camera.world_bounds
         positions = self.simulation.entities.positions
         eligible_mask = (
-            (positions[:, 0] >= left)
-            & (positions[:, 0] <= right)
-            & (positions[:, 1] >= top)
-            & (positions[:, 1] <= bottom)
+            (positions[:, 0] >= left - cull_margin)
+            & (positions[:, 0] <= right + cull_margin)
+            & (positions[:, 1] >= top - cull_margin)
+            & (positions[:, 1] <= bottom + cull_margin)
         )
 
         eligible_ids = np.flatnonzero(eligible_mask)
-        print(eligible_ids.shape)
         for bid in eligible_ids:
             self.draw_entity(bid)
 
